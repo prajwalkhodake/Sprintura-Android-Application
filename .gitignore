@@ -1,0 +1,7 @@
+*.apk
+.DS_Store
+sprint_architect/build/
+sprint_architect/.dart_tool/
+backend/__pycache__/
+backend/venv/
+backend/.env

@@ -41,8 +41,15 @@ class _TimerScreenState extends State<TimerScreen>
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
+        final tc = AppTheme.getThemeColors(provider.activeTheme);
         return Container(
-          decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [tc.background1, tc.background2],
+            ),
+          ),
           child: SafeArea(
             child: Column(
               children: [
@@ -57,11 +64,11 @@ class _TimerScreenState extends State<TimerScreen>
                         style: GoogleFonts.inter(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.softWhite,
+                          color: tc.textPrimary,
                         ),
                       ),
                       // Strict mode toggle
-                      _buildStrictModeToggle(provider),
+                      _buildStrictModeToggle(provider, tc),
                     ],
                   ),
                 ),
@@ -105,7 +112,7 @@ class _TimerScreenState extends State<TimerScreen>
                 const Spacer(),
 
                 // Timer circle
-                _buildTimerCircle(provider),
+                _buildTimerCircle(provider, tc),
 
                 const SizedBox(height: 32),
 
@@ -115,7 +122,7 @@ class _TimerScreenState extends State<TimerScreen>
                   style: GoogleFonts.inter(
                     fontSize: 56,
                     fontWeight: FontWeight.w200,
-                    color: AppTheme.softWhite,
+                    color: tc.textPrimary,
                     letterSpacing: 4,
                   ),
                 ).animate().fadeIn(duration: 400.ms),
@@ -131,8 +138,8 @@ class _TimerScreenState extends State<TimerScreen>
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: provider.isTimerRunning
-                        ? AppTheme.sageGreen
-                        : AppTheme.slateGray,
+                        ? tc.accent
+                        : tc.textMuted,
                     letterSpacing: 1,
                   ),
                 ),
@@ -140,12 +147,12 @@ class _TimerScreenState extends State<TimerScreen>
                 const Spacer(),
 
                 // Duration presets (only when not running)
-                if (!provider.isTimerRunning) _buildDurationPresets(provider),
+                if (!provider.isTimerRunning) _buildDurationPresets(provider, tc),
 
                 const SizedBox(height: 24),
 
                 // Control buttons
-                _buildControlButtons(provider),
+                _buildControlButtons(provider, tc),
 
                 const SizedBox(height: 40),
               ],
@@ -156,7 +163,7 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
-  Widget _buildStrictModeToggle(AppProvider provider) {
+  Widget _buildStrictModeToggle(AppProvider provider, ThemeColors tc) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -167,12 +174,12 @@ class _TimerScreenState extends State<TimerScreen>
         decoration: BoxDecoration(
           color: provider.strictMode
               ? AppTheme.errorRed.withValues(alpha: 0.12)
-              : AppTheme.cardBackground,
+              : tc.card,
           borderRadius: BorderRadius.circular(AppTheme.radiusRound),
           border: Border.all(
             color: provider.strictMode
                 ? AppTheme.errorRed.withValues(alpha: 0.3)
-                : AppTheme.dividerColor,
+                : tc.divider,
           ),
         ),
         child: Row(
@@ -184,7 +191,7 @@ class _TimerScreenState extends State<TimerScreen>
                   : Icons.lock_open_rounded,
               size: 16,
               color:
-                  provider.strictMode ? AppTheme.errorRed : AppTheme.slateGray,
+                  provider.strictMode ? AppTheme.errorRed : tc.textMuted,
             ),
             const SizedBox(width: 6),
             Text(
@@ -194,7 +201,7 @@ class _TimerScreenState extends State<TimerScreen>
                 fontWeight: FontWeight.w600,
                 color: provider.strictMode
                     ? AppTheme.errorRed
-                    : AppTheme.slateGray,
+                    : tc.textMuted,
               ),
             ),
           ],
@@ -203,7 +210,7 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
-  Widget _buildTimerCircle(AppProvider provider) {
+  Widget _buildTimerCircle(AppProvider provider, ThemeColors tc) {
     final size = MediaQuery.of(context).size.width * 0.6;
 
     return AnimatedBuilder(
@@ -232,7 +239,7 @@ class _TimerScreenState extends State<TimerScreen>
                         ? [
                             BoxShadow(
                               color:
-                                  AppTheme.sageGreen.withValues(alpha: 0.15),
+                                  tc.accent.withValues(alpha: 0.15),
                               blurRadius: 40,
                               spreadRadius: 5,
                             ),
@@ -246,7 +253,7 @@ class _TimerScreenState extends State<TimerScreen>
                   size: Size(size, size),
                   painter: _TimerRingPainter(
                     progress: 1.0,
-                    color: AppTheme.lightNavy,
+                    color: tc.divider,
                     strokeWidth: 6,
                   ),
                 ),
@@ -256,7 +263,7 @@ class _TimerScreenState extends State<TimerScreen>
                   size: Size(size, size),
                   painter: _TimerRingPainter(
                     progress: provider.timerProgress,
-                    color: AppTheme.sageGreen,
+                    color: tc.accent,
                     strokeWidth: 6,
                     hasGlow: true,
                   ),
@@ -270,12 +277,12 @@ class _TimerScreenState extends State<TimerScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        AppTheme.cardBackground,
-                        AppTheme.cardBackground.withValues(alpha: 0.8),
+                        tc.card,
+                        tc.card.withValues(alpha: 0.8),
                       ],
                     ),
                     border: Border.all(
-                      color: AppTheme.dividerColor.withValues(alpha: 0.3),
+                      color: tc.divider.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -286,7 +293,7 @@ class _TimerScreenState extends State<TimerScreen>
                         provider.isTimerRunning
                             ? Icons.self_improvement_rounded
                             : Icons.play_arrow_rounded,
-                        color: AppTheme.sageGreen.withValues(alpha: 0.6),
+                        color: tc.accent.withValues(alpha: 0.6),
                         size: 40,
                       ),
                       const SizedBox(height: 8),
@@ -295,7 +302,7 @@ class _TimerScreenState extends State<TimerScreen>
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
-                          color: AppTheme.slateGray,
+                          color: tc.textMuted,
                           letterSpacing: 1,
                         ),
                       ),
@@ -310,7 +317,7 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
-  Widget _buildDurationPresets(AppProvider provider) {
+  Widget _buildDurationPresets(AppProvider provider, ThemeColors tc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
@@ -333,14 +340,14 @@ class _TimerScreenState extends State<TimerScreen>
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppTheme.sageGreen.withValues(alpha: 0.15)
-                      : AppTheme.cardBackground,
+                      ? tc.accent.withValues(alpha: 0.15)
+                      : tc.card,
                   borderRadius:
                       BorderRadius.circular(AppTheme.radiusRound),
                   border: Border.all(
                     color: isSelected
-                        ? AppTheme.sageGreen.withValues(alpha: 0.4)
-                        : AppTheme.dividerColor.withValues(alpha: 0.4),
+                        ? tc.accent.withValues(alpha: 0.4)
+                        : tc.divider.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Text(
@@ -350,8 +357,8 @@ class _TimerScreenState extends State<TimerScreen>
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.w400,
                     color: isSelected
-                        ? AppTheme.sageGreen
-                        : AppTheme.slateGray,
+                        ? tc.accent
+                        : tc.textMuted,
                   ),
                 ),
               ),
@@ -362,7 +369,7 @@ class _TimerScreenState extends State<TimerScreen>
     ).animate().fadeIn(delay: 200.ms, duration: 400.ms);
   }
 
-  Widget _buildControlButtons(AppProvider provider) {
+  Widget _buildControlButtons(AppProvider provider, ThemeColors tc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
       child: Row(
@@ -380,14 +387,14 @@ class _TimerScreenState extends State<TimerScreen>
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.cardBackground,
+                  color: tc.card,
                   border: Border.all(
-                    color: AppTheme.dividerColor,
+                    color: tc.divider,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.stop_rounded,
-                  color: AppTheme.slateGray,
+                  color: tc.textMuted,
                   size: 24,
                 ),
               ),
@@ -415,8 +422,18 @@ class _TimerScreenState extends State<TimerScreen>
               height: 72,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: AppTheme.primaryGradient,
-                boxShadow: AppTheme.glowShadow,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [tc.accent, tc.accentDark],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: tc.accent.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
               child: Icon(
                 provider.isTimerRunning
@@ -424,7 +441,7 @@ class _TimerScreenState extends State<TimerScreen>
                         ? Icons.play_arrow_rounded
                         : Icons.pause_rounded)
                     : Icons.play_arrow_rounded,
-                color: AppTheme.deepNavy,
+                color: tc.background1,
                 size: 32,
               ),
             ),

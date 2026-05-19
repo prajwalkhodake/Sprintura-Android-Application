@@ -36,11 +36,15 @@ class SprintArchitectApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppProvider()..initialize(),
-      child: MaterialApp(
-        title: 'Sprint Architect',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        home: const SplashScreen(),
+      child: Consumer<AppProvider>(
+        builder: (context, provider, _) {
+          return MaterialApp(
+            title: 'Sprint Architect',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.buildTheme(provider.activeTheme),
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

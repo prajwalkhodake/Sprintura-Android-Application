@@ -1,4 +1,4 @@
-/// User statistics model tracking focus minutes, coins, and streaks.
+/// User statistics model tracking focus minutes, coins, streaks, and purchases.
 class UserStats {
   final int id;
   final int totalFocusMinutes;
@@ -8,6 +8,10 @@ class UserStats {
   final int totalSessions;
   final int aiUsesRemaining;
   final DateTime? lastSessionDate;
+  final int streakShields;
+  final String activeTheme; // 'default', 'sakura', 'forest'
+  final String unlockedThemes; // comma-separated: 'default,sakura,forest'
+  final String unlockedSounds; // comma-separated: 'none,rain,forest_stream,cosmic'
 
   UserStats({
     this.id = 1,
@@ -18,6 +22,10 @@ class UserStats {
     this.totalSessions = 0,
     this.aiUsesRemaining = 5, // 5 free AI uses
     this.lastSessionDate,
+    this.streakShields = 0,
+    this.activeTheme = 'default',
+    this.unlockedThemes = 'default',
+    this.unlockedSounds = 'none',
   });
 
   Map<String, dynamic> toMap() {
@@ -30,6 +38,10 @@ class UserStats {
       'total_sessions': totalSessions,
       'ai_uses_remaining': aiUsesRemaining,
       'last_session_date': lastSessionDate?.toIso8601String(),
+      'streak_shields': streakShields,
+      'active_theme': activeTheme,
+      'unlocked_themes': unlockedThemes,
+      'unlocked_sounds': unlockedSounds,
     };
   }
 
@@ -45,6 +57,10 @@ class UserStats {
       lastSessionDate: map['last_session_date'] != null
           ? DateTime.parse(map['last_session_date'] as String)
           : null,
+      streakShields: map['streak_shields'] as int? ?? 0,
+      activeTheme: map['active_theme'] as String? ?? 'default',
+      unlockedThemes: map['unlocked_themes'] as String? ?? 'default',
+      unlockedSounds: map['unlocked_sounds'] as String? ?? 'none',
     );
   }
 
@@ -57,6 +73,10 @@ class UserStats {
     int? totalSessions,
     int? aiUsesRemaining,
     DateTime? lastSessionDate,
+    int? streakShields,
+    String? activeTheme,
+    String? unlockedThemes,
+    String? unlockedSounds,
   }) {
     return UserStats(
       id: id ?? this.id,
@@ -67,6 +87,10 @@ class UserStats {
       totalSessions: totalSessions ?? this.totalSessions,
       aiUsesRemaining: aiUsesRemaining ?? this.aiUsesRemaining,
       lastSessionDate: lastSessionDate ?? this.lastSessionDate,
+      streakShields: streakShields ?? this.streakShields,
+      activeTheme: activeTheme ?? this.activeTheme,
+      unlockedThemes: unlockedThemes ?? this.unlockedThemes,
+      unlockedSounds: unlockedSounds ?? this.unlockedSounds,
     );
   }
 
@@ -77,4 +101,20 @@ class UserStats {
     if (hours == 0) return '${minutes}m';
     return '${hours}h ${minutes}m';
   }
+
+  /// Check if a theme is unlocked
+  bool isThemeUnlocked(String themeId) {
+    return unlockedThemes.split(',').contains(themeId);
+  }
+
+  /// Check if a sound is unlocked
+  bool isSoundUnlocked(String soundId) {
+    return unlockedSounds.split(',').contains(soundId);
+  }
+
+  /// Get list of unlocked theme IDs
+  List<String> get unlockedThemeList => unlockedThemes.split(',');
+
+  /// Get list of unlocked sound IDs
+  List<String> get unlockedSoundList => unlockedSounds.split(',');
 }

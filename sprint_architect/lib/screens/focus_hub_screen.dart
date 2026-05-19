@@ -49,8 +49,15 @@ class _FocusHubScreenState extends State<FocusHubScreen>
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
+        final tc = AppTheme.getThemeColors(provider.activeTheme);
         return Container(
-          decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [tc.background1, tc.background2],
+            ),
+          ),
           child: SafeArea(
             child: CustomScrollView(
               slivers: [
@@ -61,11 +68,11 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildGreetingHeader(provider),
+                        _buildGreetingHeader(provider, tc),
                         const SizedBox(height: 24),
-                        _buildStatsRow(provider),
+                        _buildStatsRow(provider, tc),
                         const SizedBox(height: 32),
-                        _buildBrainDumpCard(provider),
+                        _buildBrainDumpCard(provider, tc),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -75,13 +82,13 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                 // Deconstructing animation
                 if (provider.isDeconstructing)
                   SliverToBoxAdapter(
-                    child: _buildDeconstructingAnimation(),
+                    child: _buildDeconstructingAnimation(tc),
                   ),
 
                 // Error message
                 if (provider.errorMessage != null)
                   SliverToBoxAdapter(
-                    child: _buildErrorMessage(provider),
+                    child: _buildErrorMessage(provider, tc),
                   ),
 
                 // Recent goals
@@ -91,7 +98,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
                       child: Text(
                         'Your Sprints',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: tc.textPrimary),
                       ),
                     ),
                   ),
@@ -100,12 +107,10 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                 SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final goalId =
-                          provider.tasksByGoal.keys.elementAt(index);
+                      final goalId = provider.tasksByGoal.keys.elementAt(index);
                       final tasks = provider.tasksByGoal[goalId]!;
                       final goalTitle = tasks.first.parentGoalTitle ?? 'Goal';
-                      final completedCount =
-                          tasks.where((t) => t.isCompleted).length;
+                      final completedCount = tasks.where((t) => t.isCompleted).length;
                       final progress = completedCount / tasks.length;
 
                       return Padding(
@@ -117,6 +122,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                           progress,
                           goalId,
                           provider,
+                          tc,
                         ),
                       )
                           .animate()
@@ -147,7 +153,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
     );
   }
 
-  Widget _buildGreetingHeader(AppProvider provider) {
+  Widget _buildGreetingHeader(AppProvider provider, ThemeColors tc) {
     final hour = DateTime.now().hour;
     String greeting;
     IconData greetingIcon;
@@ -167,14 +173,14 @@ class _FocusHubScreenState extends State<FocusHubScreen>
       children: [
         Row(
           children: [
-            Icon(greetingIcon, color: AppTheme.sageGreen, size: 20),
+            Icon(greetingIcon, color: tc.accent, size: 20),
             const SizedBox(width: 8),
             Text(
               greeting,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.sageGreen,
+                color: tc.accent,
                 letterSpacing: 1,
               ),
             ),
@@ -186,7 +192,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
           style: GoogleFonts.inter(
             fontSize: 32,
             fontWeight: FontWeight.w700,
-            color: AppTheme.softWhite,
+            color: tc.textPrimary,
             letterSpacing: -0.5,
           ),
         ),
@@ -194,7 +200,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
     ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.1, end: 0);
   }
 
-  Widget _buildStatsRow(AppProvider provider) {
+  Widget _buildStatsRow(AppProvider provider, ThemeColors tc) {
     return Row(
       children: [
         _buildStatChip(
@@ -202,6 +208,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
           '${provider.stats.currentStreak}',
           'Streak',
           AppTheme.warningAmber,
+          tc,
         ),
         const SizedBox(width: 12),
         _buildStatChip(
@@ -209,13 +216,15 @@ class _FocusHubScreenState extends State<FocusHubScreen>
           '${provider.stats.focusCoins}',
           'Coins',
           const Color(0xFFFFD700),
+          tc,
         ),
         const SizedBox(width: 12),
         _buildStatChip(
           Icons.schedule_rounded,
           provider.stats.focusHours,
           'Focus',
-          AppTheme.sageGreen,
+          tc.accent,
+          tc,
         ),
         const SizedBox(width: 12),
         _buildStatChip(
@@ -223,6 +232,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
           '${provider.stats.aiUsesRemaining}',
           'AI Uses',
           const Color(0xFFB388FF),
+          tc,
         ),
       ],
     )
@@ -232,12 +242,12 @@ class _FocusHubScreenState extends State<FocusHubScreen>
   }
 
   Widget _buildStatChip(
-      IconData icon, String value, String label, Color color) {
+      IconData icon, String value, String label, Color color, ThemeColors tc) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: tc.card,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
             color: color.withValues(alpha: 0.2),
@@ -253,7 +263,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.softWhite,
+                color: tc.textPrimary,
               ),
             ),
             Text(
@@ -261,7 +271,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               style: GoogleFonts.inter(
                 fontSize: 10,
                 fontWeight: FontWeight.w400,
-                color: AppTheme.slateGray,
+                color: tc.textMuted,
               ),
             ),
           ],
@@ -270,16 +280,26 @@ class _FocusHubScreenState extends State<FocusHubScreen>
     );
   }
 
-  Widget _buildBrainDumpCard(AppProvider provider) {
+  Widget _buildBrainDumpCard(AppProvider provider, ThemeColors tc) {
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.cardGradient,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [tc.card, tc.background2],
+        ),
         borderRadius: BorderRadius.circular(AppTheme.radiusXl),
         border: Border.all(
-          color: AppTheme.sageGreen.withValues(alpha: 0.15),
+          color: tc.accent.withValues(alpha: 0.15),
           width: 1,
         ),
-        boxShadow: AppTheme.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -290,12 +310,12 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.sageGreen.withValues(alpha: 0.12),
+                  color: tc.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.psychology_rounded,
-                  color: AppTheme.sageGreen,
+                  color: tc.accent,
                   size: 20,
                 ),
               ),
@@ -305,7 +325,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.softWhite,
+                  color: tc.textPrimary,
                 ),
               ),
             ],
@@ -315,7 +335,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
             "What's your big goal today? I'll break it into micro-tasks.",
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: AppTheme.slateGray,
+              color: tc.textMuted,
               height: 1.5,
             ),
           ),
@@ -325,18 +345,18 @@ class _FocusHubScreenState extends State<FocusHubScreen>
             maxLines: 3,
             minLines: 2,
             style: GoogleFonts.inter(
-              color: AppTheme.softWhite,
+              color: tc.textPrimary,
               fontSize: 15,
             ),
             decoration: InputDecoration(
               hintText:
                   'e.g. "Learn Flutter state management" or "Build a landing page"',
               hintStyle: GoogleFonts.inter(
-                color: AppTheme.dimGray,
+                color: tc.textDim,
                 fontSize: 14,
               ),
               filled: true,
-              fillColor: AppTheme.deepNavy.withValues(alpha: 0.6),
+              fillColor: tc.background1.withValues(alpha: 0.6),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 borderSide: BorderSide.none,
@@ -344,13 +364,13 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 borderSide: BorderSide(
-                  color: AppTheme.dividerColor.withValues(alpha: 0.5),
+                  color: tc.divider.withValues(alpha: 0.5),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                borderSide: const BorderSide(
-                  color: AppTheme.sageGreen,
+                borderSide: BorderSide(
+                  color: tc.accent,
                   width: 1.5,
                 ),
               ),
@@ -365,12 +385,12 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               onPressed:
                   provider.isDeconstructing ? null : _submitBrainDump,
               icon: provider.isDeconstructing
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: AppTheme.deepNavy,
+                        color: tc.background1,
                       ),
                     )
                   : const Icon(Icons.auto_awesome_rounded, size: 18),
@@ -381,6 +401,8 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
+                backgroundColor: tc.accent,
+                foregroundColor: tc.background1,
               ),
             ),
           ),
@@ -392,26 +414,26 @@ class _FocusHubScreenState extends State<FocusHubScreen>
         .slideY(begin: 0.1, end: 0, delay: 400.ms);
   }
 
-  Widget _buildDeconstructingAnimation() {
+  Widget _buildDeconstructingAnimation(ThemeColors tc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: tc.card,
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           border: Border.all(
-            color: AppTheme.sageGreen.withValues(alpha: 0.2),
+            color: tc.accent.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 50,
               height: 50,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppTheme.sageGreen,
+                color: tc.accent,
               ),
             )
                 .animate(onPlay: (c) => c.repeat())
@@ -422,7 +444,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.sageGreen,
+                color: tc.accent,
               ),
             )
                 .animate(onPlay: (c) => c.repeat(reverse: true))
@@ -434,7 +456,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               'Breaking down your goal into focused micro-tasks',
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: AppTheme.slateGray,
+                color: tc.textMuted,
               ),
               textAlign: TextAlign.center,
             ),
@@ -444,7 +466,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
     );
   }
 
-  Widget _buildErrorMessage(AppProvider provider) {
+  Widget _buildErrorMessage(AppProvider provider, ThemeColors tc) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Container(
@@ -486,6 +508,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
     double progress,
     String goalId,
     AppProvider provider,
+    ThemeColors tc,
   ) {
     return Dismissible(
       key: Key(goalId),
@@ -503,12 +526,16 @@ class _FocusHubScreenState extends State<FocusHubScreen>
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          gradient: AppTheme.cardGradient,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [tc.card, tc.background2],
+          ),
           borderRadius: BorderRadius.circular(AppTheme.radiusLg),
           border: Border.all(
             color: progress >= 1.0
-                ? AppTheme.sageGreen.withValues(alpha: 0.3)
-                : AppTheme.dividerColor.withValues(alpha: 0.5),
+                ? tc.accent.withValues(alpha: 0.3)
+                : tc.divider.withValues(alpha: 0.5),
           ),
         ),
         child: Column(
@@ -522,7 +549,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.softWhite,
+                      color: tc.textPrimary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -533,7 +560,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.sageGreen.withValues(alpha: 0.15),
+                      color: tc.accent.withValues(alpha: 0.15),
                       borderRadius:
                           BorderRadius.circular(AppTheme.radiusRound),
                     ),
@@ -542,7 +569,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.sageGreen,
+                        color: tc.accent,
                       ),
                     ),
                   ),
@@ -555,7 +582,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                   '$completedTasks / $totalTasks tasks',
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: AppTheme.slateGray,
+                    color: tc.textMuted,
                   ),
                 ),
                 const Spacer(),
@@ -564,7 +591,7 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.sageGreen,
+                    color: tc.accent,
                   ),
                 ),
               ],
@@ -574,11 +601,11 @@ class _FocusHubScreenState extends State<FocusHubScreen>
               borderRadius: BorderRadius.circular(AppTheme.radiusRound),
               child: LinearProgressIndicator(
                 value: progress,
-                backgroundColor: AppTheme.lightNavy,
+                backgroundColor: tc.background1,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   progress >= 1.0
-                      ? AppTheme.sageGreen
-                      : AppTheme.sageGreenMuted,
+                      ? tc.accent
+                      : tc.accent.withValues(alpha: 0.6),
                 ),
                 minHeight: 4,
               ),

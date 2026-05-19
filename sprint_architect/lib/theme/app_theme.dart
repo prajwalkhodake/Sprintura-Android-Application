@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Sprint Architect Design System
 /// Inspired by "Regain" — minimalist, serene, wellness-focused.
+/// Supports multiple unlockable themes.
 class AppTheme {
-  // ========== COLORS ==========
+  // ========== DEFAULT THEME COLORS (Deep Navy + Sage Green) ==========
   static const Color deepNavy = Color(0xFF0A192F);
   static const Color darkNavy = Color(0xFF0D1B2A);
   static const Color midNavy = Color(0xFF1B2838);
@@ -85,81 +86,140 @@ class AppTheme {
   static const double spaceXl = 32.0;
   static const double spaceXxl = 48.0;
 
-  // ========== THEME DATA ==========
-  static ThemeData get darkTheme {
+  // ========== PREMIUM THEME DEFINITIONS ==========
+  static const Map<String, ThemeColors> themePresets = {
+    'default': ThemeColors(
+      name: 'Deep Navy',
+      background1: Color(0xFF0A192F),
+      background2: Color(0xFF0D1B2A),
+      card: Color(0xFF112240),
+      accent: Color(0xFF64FFDA),
+      accentDark: Color(0xFF4ECDC4),
+      divider: Color(0xFF233554),
+      textPrimary: Color(0xFFE6F1FF),
+      textSecondary: Color(0xFFA8B2D1),
+      textMuted: Color(0xFF8892B0),
+      textDim: Color(0xFF495670),
+      icon: '🌊',
+    ),
+    'sakura': ThemeColors(
+      name: 'Midnight Sakura',
+      background1: Color(0xFF0D0D0D),
+      background2: Color(0xFF1A0A1A),
+      card: Color(0xFF1F0F1F),
+      accent: Color(0xFFFF8FAB),
+      accentDark: Color(0xFFE0607E),
+      divider: Color(0xFF2A1A2A),
+      textPrimary: Color(0xFFFFF0F5),
+      textSecondary: Color(0xFFD4A3B5),
+      textMuted: Color(0xFFA07080),
+      textDim: Color(0xFF5A3545),
+      icon: '🌸',
+    ),
+    'forest': ThemeColors(
+      name: 'Forest Meditation',
+      background1: Color(0xFF0A1A0A),
+      background2: Color(0xFF0D150D),
+      card: Color(0xFF122212),
+      accent: Color(0xFFA8D5BA),
+      accentDark: Color(0xFF7CB896),
+      divider: Color(0xFF1E3A1E),
+      textPrimary: Color(0xFFF0F5F0),
+      textSecondary: Color(0xFFB0C4B0),
+      textMuted: Color(0xFF7A9A7A),
+      textDim: Color(0xFF4A6A4A),
+      icon: '🌿',
+    ),
+  };
+
+  /// Get colors for a given theme ID
+  static ThemeColors getThemeColors(String themeId) {
+    return themePresets[themeId] ?? themePresets['default']!;
+  }
+
+  /// Build a ThemeData from a theme ID
+  static ThemeData buildTheme(String themeId) {
+    final tc = getThemeColors(themeId);
+    return _buildThemeData(tc);
+  }
+
+  // ========== DEFAULT THEME DATA ==========
+  static ThemeData get darkTheme => _buildThemeData(themePresets['default']!);
+
+  static ThemeData _buildThemeData(ThemeColors tc) {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: deepNavy,
-      colorScheme: const ColorScheme.dark(
-        primary: sageGreen,
-        secondary: sageGreenDark,
-        surface: cardBackground,
+      scaffoldBackgroundColor: tc.background1,
+      colorScheme: ColorScheme.dark(
+        primary: tc.accent,
+        secondary: tc.accentDark,
+        surface: tc.card,
         error: errorRed,
-        onPrimary: deepNavy,
-        onSecondary: deepNavy,
-        onSurface: softWhite,
+        onPrimary: tc.background1,
+        onSecondary: tc.background1,
+        onSurface: tc.textPrimary,
         onError: softWhite,
       ),
       textTheme: GoogleFonts.interTextTheme(
-        const TextTheme(
+        TextTheme(
           displayLarge: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w700,
-            color: softWhite,
+            color: tc.textPrimary,
             letterSpacing: -0.5,
           ),
           displayMedium: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w600,
-            color: softWhite,
+            color: tc.textPrimary,
             letterSpacing: -0.3,
           ),
           headlineLarge: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: softWhite,
+            color: tc.textPrimary,
           ),
           headlineMedium: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: softWhite,
+            color: tc.textPrimary,
           ),
           titleLarge: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: softWhite,
+            color: tc.textPrimary,
           ),
           titleMedium: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: softWhite,
+            color: tc.textPrimary,
           ),
           bodyLarge: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: lightGray,
+            color: tc.textSecondary,
           ),
           bodyMedium: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: lightGray,
+            color: tc.textSecondary,
           ),
           bodySmall: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w400,
-            color: slateGray,
+            color: tc.textMuted,
           ),
           labelLarge: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: sageGreen,
+            color: tc.accent,
             letterSpacing: 0.5,
           ),
           labelMedium: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: slateGray,
+            color: tc.textMuted,
           ),
         ),
       ),
@@ -170,12 +230,12 @@ class AppTheme {
         titleTextStyle: GoogleFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          color: softWhite,
+          color: tc.textPrimary,
         ),
-        iconTheme: const IconThemeData(color: softWhite),
+        iconTheme: IconThemeData(color: tc.textPrimary),
       ),
       cardTheme: CardThemeData(
-        color: cardBackground,
+        color: tc.card,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusLg),
@@ -183,8 +243,8 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: sageGreen,
-          foregroundColor: deepNavy,
+          backgroundColor: tc.accent,
+          foregroundColor: tc.background1,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -198,8 +258,8 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: sageGreen,
-          side: const BorderSide(color: sageGreen, width: 1.5),
+          foregroundColor: tc.accent,
+          side: BorderSide(color: tc.accent, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
@@ -212,7 +272,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: midNavy,
+        fillColor: tc.background2,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
@@ -220,32 +280,32 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: dividerColor, width: 1),
+          borderSide: BorderSide(color: tc.divider, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: sageGreen, width: 1.5),
+          borderSide: BorderSide(color: tc.accent, width: 1.5),
         ),
         hintStyle: GoogleFonts.inter(
-          color: slateGray,
+          color: tc.textMuted,
           fontSize: 15,
         ),
         labelStyle: GoogleFonts.inter(
-          color: lightGray,
+          color: tc.textSecondary,
           fontSize: 14,
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: darkNavy,
-        selectedItemColor: sageGreen,
-        unselectedItemColor: dimGray,
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: tc.background2,
+        selectedItemColor: tc.accent,
+        unselectedItemColor: tc.textDim,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: cardBackground,
+        backgroundColor: tc.card,
         contentTextStyle: GoogleFonts.inter(
-          color: softWhite,
+          color: tc.textPrimary,
           fontSize: 14,
         ),
         shape: RoundedRectangleBorder(
@@ -253,20 +313,53 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      dividerTheme: const DividerThemeData(
-        color: dividerColor,
+      dividerTheme: DividerThemeData(
+        color: tc.divider,
         thickness: 1,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return sageGreen;
-          return dimGray;
+          if (states.contains(WidgetState.selected)) return tc.accent;
+          return tc.textDim;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return sageGreenSubtle;
-          return lightNavy;
+          if (states.contains(WidgetState.selected)) {
+            return tc.accent.withValues(alpha: 0.3);
+          }
+          return tc.divider;
         }),
       ),
     );
   }
+}
+
+/// Data class holding all colors for a theme variant.
+class ThemeColors {
+  final String name;
+  final Color background1;
+  final Color background2;
+  final Color card;
+  final Color accent;
+  final Color accentDark;
+  final Color divider;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textMuted;
+  final Color textDim;
+  final String icon;
+
+  const ThemeColors({
+    required this.name,
+    required this.background1,
+    required this.background2,
+    required this.card,
+    required this.accent,
+    required this.accentDark,
+    required this.divider,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textMuted,
+    required this.textDim,
+    required this.icon,
+  });
 }

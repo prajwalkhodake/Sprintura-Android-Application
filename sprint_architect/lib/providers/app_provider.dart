@@ -7,7 +7,7 @@ import '../models/user_stats_model.dart';
 import '../services/ai_service.dart';
 import '../services/ad_service.dart';
 
-/// Main application state provider managing tasks, stats, timer, and ads.
+/// Main application state provider managing tasks, stats, timer, ads, and shop.
 class AppProvider extends ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper();
   final AIService _aiService = AIService();
@@ -19,6 +19,7 @@ class AppProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isDeconstructing = false;
   String? _errorMessage;
+  String? _successMessage;
 
   // Timer state
   int _timerDuration = 25 * 60; // 25 minutes in seconds
@@ -32,6 +33,9 @@ class AppProvider extends ChangeNotifier {
   bool _strictMode = false;
   bool _hasLeftApp = false;
 
+  // Active ambient sound for timer
+  String _activeSound = 'none';
+
   // ========== GETTERS ==========
   List<Task> get tasks => _tasks;
   List<Task> get pendingTasks => _tasks.where((t) => !t.isCompleted).toList();
@@ -40,6 +44,7 @@ class AppProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isDeconstructing => _isDeconstructing;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
 
   int get timerDuration => _timerDuration;
   int get timerRemaining => _timerRemaining;
@@ -50,6 +55,8 @@ class AppProvider extends ChangeNotifier {
   bool get strictMode => _strictMode;
   bool get hasLeftApp => _hasLeftApp;
   AdService get adService => _adService;
+  String get activeSound => _activeSound;
+  String get activeTheme => _stats.activeTheme;
 
   double get timerProgress {
     if (_timerDuration == 0) return 0;
@@ -71,9 +78,10 @@ class AppProvider extends ChangeNotifier {
       _stats = await _db.getUserStats();
       _tasks = await _db.getTasks();
 
-      // Load strict mode preference
+      // Load preferences
       final prefs = await SharedPreferences.getInstance();
       _strictMode = prefs.getBool('strict_mode') ?? false;
+      _activeSound = prefs.getString('active_sound') ?? 'none';
 
       // Pre-load ads
       _adService.loadInterstitialAd();
@@ -97,7 +105,7 @@ class AppProvider extends ChangeNotifier {
     try {
       // Check AI uses
       if (_stats.aiUsesRemaining <= 0) {
-        _errorMessage = 'No AI uses remaining. Watch an ad to earn more!';
+        _errorMessage = 'No AI uses remaining. Watch an ad or buy a refill!';
         _isDeconstructing = false;
         notifyListeners();
         return;
@@ -278,8 +286,90 @@ class AppProvider extends ChangeNotifier {
     }
   }
 
+  // ========== COIN SHOP PURCHASES ==========
+
+  /// Buy AI refill with coins (100 coins → +5 AI uses)
+  Future<bool> purchaseAIRefill() async {
+    try {
+      _stats = await _db.buyAIRefill();
+      _successMessage = '🧠 +5 AI Uses unlocked!';
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Buy streak shield (300 coins → +1 shield)
+  Future<bool> purchaseStreakShield() async {
+    try {
+      _stats = await _db.buyStreakShield();
+      _successMessage = '🛡️ Streak Shield activated!';
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Buy a premium theme (1000 coins)
+  Future<bool> purchaseTheme(String themeId) async {
+    try {
+      _stats = await _db.buyTheme(themeId);
+      _successMessage = '🎨 Theme unlocked and applied!';
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Switch active theme (free if already unlocked)
+  Future<void> switchTheme(String themeId) async {
+    try {
+      _stats = await _db.setActiveTheme(themeId);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+    }
+  }
+
+  /// Buy an ambient sound (500 coins)
+  Future<bool> purchaseSound(String soundId) async {
+    try {
+      _stats = await _db.buySound(soundId);
+      _successMessage = '🎵 Ambient sound unlocked!';
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Set active ambient sound
+  Future<void> setActiveSound(String soundId) async {
+    _activeSound = soundId;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('active_sound', soundId);
+    notifyListeners();
+  }
+
   void clearError() {
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  void clearSuccess() {
+    _successMessage = null;
     notifyListeners();
   }
 

@@ -24,8 +24,9 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -44,7 +45,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Create user_stats table
+    // Create user_stats table (v2 schema with shop fields)
     await db.execute('''
       CREATE TABLE user_stats (
         id INTEGER PRIMARY KEY,
@@ -54,12 +55,30 @@ class DatabaseHelper {
         longest_streak INTEGER NOT NULL DEFAULT 0,
         total_sessions INTEGER NOT NULL DEFAULT 0,
         ai_uses_remaining INTEGER NOT NULL DEFAULT 5,
-        last_session_date TEXT
+        last_session_date TEXT,
+        streak_shields INTEGER NOT NULL DEFAULT 0,
+        active_theme TEXT NOT NULL DEFAULT 'default',
+        unlocked_themes TEXT NOT NULL DEFAULT 'default',
+        unlocked_sounds TEXT NOT NULL DEFAULT 'none'
       )
     ''');
 
     // Insert default user stats
     await db.insert('user_stats', UserStats().toMap());
+  }
+
+  /// Migrate from v1 to v2: add coin shop columns
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+          'ALTER TABLE user_stats ADD COLUMN streak_shields INTEGER NOT NULL DEFAULT 0');
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN active_theme TEXT NOT NULL DEFAULT 'default'");
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN unlocked_themes TEXT NOT NULL DEFAULT 'default'");
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN unlocked_sounds TEXT NOT NULL DEFAULT 'none'");
+    }
   }
 
   // ========== TASK OPERATIONS ==========
@@ -256,6 +275,95 @@ class DatabaseHelper {
     final stats = await getUserStats();
     final updatedStats = stats.copyWith(
       aiUsesRemaining: stats.aiUsesRemaining + amount,
+    );
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  // ========== COIN SHOP PURCHASES ==========
+
+  /// Buy AI refills with coins (100 coins → +5 AI uses)
+  Future<UserStats> buyAIRefill() async {
+    final stats = await getUserStats();
+    if (stats.focusCoins < 100) {
+      throw Exception('Not enough coins. Need 100, have ${stats.focusCoins}.');
+    }
+    final updatedStats = stats.copyWith(
+      focusCoins: stats.focusCoins - 100,
+      aiUsesRemaining: stats.aiUsesRemaining + 5,
+    );
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  /// Buy a streak shield with coins (300 coins → +1 shield)
+  Future<UserStats> buyStreakShield() async {
+    final stats = await getUserStats();
+    if (stats.focusCoins < 300) {
+      throw Exception('Not enough coins. Need 300, have ${stats.focusCoins}.');
+    }
+    final updatedStats = stats.copyWith(
+      focusCoins: stats.focusCoins - 300,
+      streakShields: stats.streakShields + 1,
+    );
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  /// Buy and unlock a theme (1000 coins)
+  Future<UserStats> buyTheme(String themeId) async {
+    final stats = await getUserStats();
+    if (stats.isThemeUnlocked(themeId)) {
+      throw Exception('Theme already unlocked.');
+    }
+    if (stats.focusCoins < 1000) {
+      throw Exception('Not enough coins. Need 1000, have ${stats.focusCoins}.');
+    }
+    final updatedStats = stats.copyWith(
+      focusCoins: stats.focusCoins - 1000,
+      unlockedThemes: '${stats.unlockedThemes},$themeId',
+      activeTheme: themeId, // Auto-apply purchased theme
+    );
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  /// Switch active theme (must be unlocked already)
+  Future<UserStats> setActiveTheme(String themeId) async {
+    final stats = await getUserStats();
+    if (!stats.isThemeUnlocked(themeId)) {
+      throw Exception('Theme not unlocked.');
+    }
+    final updatedStats = stats.copyWith(activeTheme: themeId);
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  /// Buy and unlock an ambient sound (500 coins)
+  Future<UserStats> buySound(String soundId) async {
+    final stats = await getUserStats();
+    if (stats.isSoundUnlocked(soundId)) {
+      throw Exception('Sound already unlocked.');
+    }
+    if (stats.focusCoins < 500) {
+      throw Exception('Not enough coins. Need 500, have ${stats.focusCoins}.');
+    }
+    final updatedStats = stats.copyWith(
+      focusCoins: stats.focusCoins - 500,
+      unlockedSounds: '${stats.unlockedSounds},$soundId',
+    );
+    await updateUserStats(updatedStats);
+    return updatedStats;
+  }
+
+  /// Use a streak shield when the streak would break
+  Future<UserStats> useStreakShield() async {
+    final stats = await getUserStats();
+    if (stats.streakShields <= 0) {
+      return stats; // No shields available
+    }
+    final updatedStats = stats.copyWith(
+      streakShields: stats.streakShields - 1,
     );
     await updateUserStats(updatedStats);
     return updatedStats;

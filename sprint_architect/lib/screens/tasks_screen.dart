@@ -35,8 +35,15 @@ class _TasksScreenState extends State<TasksScreen>
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
+        final tc = AppTheme.getThemeColors(provider.activeTheme);
         return Container(
-          decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [tc.background1, tc.background2],
+            ),
+          ),
           child: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +59,7 @@ class _TasksScreenState extends State<TasksScreen>
                         style: GoogleFonts.inter(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.softWhite,
+                          color: tc.textPrimary,
                         ),
                       ),
                       Container(
@@ -61,7 +68,7 @@ class _TasksScreenState extends State<TasksScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppTheme.sageGreen.withValues(alpha: 0.12),
+                          color: tc.accent.withValues(alpha: 0.12),
                           borderRadius:
                               BorderRadius.circular(AppTheme.radiusRound),
                         ),
@@ -70,7 +77,7 @@ class _TasksScreenState extends State<TasksScreen>
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: AppTheme.sageGreen,
+                            color: tc.accent,
                           ),
                         ),
                       ),
@@ -85,20 +92,18 @@ class _TasksScreenState extends State<TasksScreen>
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.cardBackground,
-                      borderRadius:
-                          BorderRadius.circular(AppTheme.radiusMd),
+                      color: tc.card,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                     ),
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
-                        color: AppTheme.sageGreen.withValues(alpha: 0.15),
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusMd),
+                        color: tc.accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
-                      labelColor: AppTheme.sageGreen,
-                      unselectedLabelColor: AppTheme.slateGray,
+                      labelColor: tc.accent,
+                      unselectedLabelColor: tc.textMuted,
                       labelStyle: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -144,9 +149,8 @@ class _TasksScreenState extends State<TasksScreen>
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildTaskList(provider.pendingTasks, provider, false),
-                      _buildTaskList(
-                          provider.completedTasks, provider, true),
+                      _buildTaskList(provider.pendingTasks, provider, tc, false),
+                      _buildTaskList(provider.completedTasks, provider, tc, true),
                     ],
                   ),
                 ),
@@ -159,7 +163,7 @@ class _TasksScreenState extends State<TasksScreen>
   }
 
   Widget _buildTaskList(
-      List<Task> tasks, AppProvider provider, bool isCompleted) {
+      List<Task> tasks, AppProvider provider, ThemeColors tc, bool isCompleted) {
     if (tasks.isEmpty) {
       return Center(
         child: Column(
@@ -170,7 +174,7 @@ class _TasksScreenState extends State<TasksScreen>
                   ? Icons.emoji_events_rounded
                   : Icons.inbox_rounded,
               size: 64,
-              color: AppTheme.dimGray,
+              color: tc.textDim,
             ),
             const SizedBox(height: 16),
             Text(
@@ -180,7 +184,7 @@ class _TasksScreenState extends State<TasksScreen>
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.slateGray,
+                color: tc.textMuted,
               ),
             ),
             const SizedBox(height: 8),
@@ -190,7 +194,7 @@ class _TasksScreenState extends State<TasksScreen>
                   : 'Use Brain Dump to generate tasks',
               style: GoogleFonts.inter(
                 fontSize: 13,
-                color: AppTheme.dimGray,
+                color: tc.textDim,
               ),
             ),
           ],
@@ -206,7 +210,7 @@ class _TasksScreenState extends State<TasksScreen>
       itemCount: tasks.length,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return _buildTaskItem(task, provider, index)
+        return _buildTaskItem(task, provider, tc, index)
             .animate()
             .fadeIn(
               delay: Duration(milliseconds: 50 * index),
@@ -222,7 +226,7 @@ class _TasksScreenState extends State<TasksScreen>
     );
   }
 
-  Widget _buildTaskItem(Task task, AppProvider provider, int index) {
+  Widget _buildTaskItem(Task task, AppProvider provider, ThemeColors tc, int index) {
     return Dismissible(
       key: Key(task.id),
       direction: DismissDirection.endToStart,
@@ -244,12 +248,12 @@ class _TasksScreenState extends State<TasksScreen>
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: tc.card,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           border: Border.all(
             color: task.isCompleted
-                ? AppTheme.sageGreen.withValues(alpha: 0.2)
-                : AppTheme.dividerColor.withValues(alpha: 0.4),
+                ? tc.accent.withValues(alpha: 0.2)
+                : tc.divider.withValues(alpha: 0.4),
           ),
         ),
         child: Row(
@@ -267,17 +271,17 @@ class _TasksScreenState extends State<TasksScreen>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: task.isCompleted
-                      ? AppTheme.sageGreen
+                      ? tc.accent
                       : Colors.transparent,
                   border: Border.all(
                     color: task.isCompleted
-                        ? AppTheme.sageGreen
-                        : AppTheme.slateGray,
+                        ? tc.accent
+                        : tc.textMuted,
                     width: 2,
                   ),
                 ),
                 child: task.isCompleted
-                    ? const Icon(Icons.check, size: 14, color: AppTheme.deepNavy)
+                    ? Icon(Icons.check, size: 14, color: tc.background1)
                     : null,
               ),
             ),
@@ -294,8 +298,8 @@ class _TasksScreenState extends State<TasksScreen>
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: task.isCompleted
-                          ? AppTheme.slateGray
-                          : AppTheme.softWhite,
+                          ? tc.textMuted
+                          : tc.textPrimary,
                       decoration: task.isCompleted
                           ? TextDecoration.lineThrough
                           : null,
@@ -307,14 +311,14 @@ class _TasksScreenState extends State<TasksScreen>
                       Icon(
                         Icons.timer_outlined,
                         size: 13,
-                        color: AppTheme.dimGray,
+                        color: tc.textDim,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${task.duration} min',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: AppTheme.dimGray,
+                          color: tc.textDim,
                         ),
                       ),
                       if (task.parentGoalTitle != null) ...[
@@ -322,7 +326,7 @@ class _TasksScreenState extends State<TasksScreen>
                         Icon(
                           Icons.flag_outlined,
                           size: 13,
-                          color: AppTheme.dimGray,
+                          color: tc.textDim,
                         ),
                         const SizedBox(width: 4),
                         Flexible(
@@ -330,7 +334,7 @@ class _TasksScreenState extends State<TasksScreen>
                             task.parentGoalTitle!,
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: AppTheme.dimGray,
+                              color: tc.textDim,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

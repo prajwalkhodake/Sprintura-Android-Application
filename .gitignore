@@ -5,3 +5,8 @@ sprint_architect/.dart_tool/
 backend/__pycache__/
 backend/venv/
 backend/.env
+
+# IntelliJ/Android Studio related
+.idea/
+*.iml
+

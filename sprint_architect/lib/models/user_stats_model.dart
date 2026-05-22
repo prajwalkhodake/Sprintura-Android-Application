@@ -12,6 +12,9 @@ class UserStats {
   final String activeTheme; // 'default', 'sakura', 'forest'
   final String unlockedThemes; // comma-separated: 'default,sakura,forest'
   final String unlockedSounds; // comma-separated: 'none,rain,forest_stream,cosmic'
+  final int adCoinsWatchedToday;
+  final int adAiWatchedToday;
+  final DateTime? lastAdWatchDate;
 
   UserStats({
     this.id = 1,
@@ -26,6 +29,9 @@ class UserStats {
     this.activeTheme = 'default',
     this.unlockedThemes = 'default',
     this.unlockedSounds = 'none',
+    this.adCoinsWatchedToday = 0,
+    this.adAiWatchedToday = 0,
+    this.lastAdWatchDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -42,6 +48,9 @@ class UserStats {
       'active_theme': activeTheme,
       'unlocked_themes': unlockedThemes,
       'unlocked_sounds': unlockedSounds,
+      'ad_coins_watched_today': adCoinsWatchedToday,
+      'ad_ai_watched_today': adAiWatchedToday,
+      'last_ad_watch_date': lastAdWatchDate?.toIso8601String(),
     };
   }
 
@@ -61,6 +70,11 @@ class UserStats {
       activeTheme: map['active_theme'] as String? ?? 'default',
       unlockedThemes: map['unlocked_themes'] as String? ?? 'default',
       unlockedSounds: map['unlocked_sounds'] as String? ?? 'none',
+      adCoinsWatchedToday: map['ad_coins_watched_today'] as int? ?? 0,
+      adAiWatchedToday: map['ad_ai_watched_today'] as int? ?? 0,
+      lastAdWatchDate: map['last_ad_watch_date'] != null
+          ? DateTime.parse(map['last_ad_watch_date'] as String)
+          : null,
     );
   }
 
@@ -77,6 +91,9 @@ class UserStats {
     String? activeTheme,
     String? unlockedThemes,
     String? unlockedSounds,
+    int? adCoinsWatchedToday,
+    int? adAiWatchedToday,
+    DateTime? lastAdWatchDate,
   }) {
     return UserStats(
       id: id ?? this.id,
@@ -91,6 +108,9 @@ class UserStats {
       activeTheme: activeTheme ?? this.activeTheme,
       unlockedThemes: unlockedThemes ?? this.unlockedThemes,
       unlockedSounds: unlockedSounds ?? this.unlockedSounds,
+      adCoinsWatchedToday: adCoinsWatchedToday ?? this.adCoinsWatchedToday,
+      adAiWatchedToday: adAiWatchedToday ?? this.adAiWatchedToday,
+      lastAdWatchDate: lastAdWatchDate ?? this.lastAdWatchDate,
     );
   }
 

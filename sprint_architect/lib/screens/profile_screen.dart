@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -33,25 +32,30 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildStatsGrid(provider, tc),
                   const SizedBox(height: 24),
+                  
                   // Success/Error banners
                   if (provider.successMessage != null) _buildBanner(provider.successMessage!, tc.accent, tc, () => provider.clearSuccess()),
                   if (provider.errorMessage != null) _buildBanner(provider.errorMessage!, AppTheme.errorRed, tc, () => provider.clearError()),
-                  const SizedBox(height: 8),
-                  Text('🛍️ Coin Shop', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)).animate().fadeIn(delay: 400.ms, duration: 400.ms),
-                  const SizedBox(height: 4),
-                  Text('Spend your hard-earned Focus Coins', style: GoogleFonts.inter(fontSize: 13, color: tc.textMuted)),
+                  if (provider.successMessage != null || provider.errorMessage != null) const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Icon(Icons.stars_rounded, color: tc.textPrimary, size: 24),
+                      const SizedBox(width: 8),
+                      Text('Daily Rewards', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)),
+                    ],
+                  ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
                   const SizedBox(height: 12),
-                  _buildCoinShop(context, provider, tc),
+                  _buildDailyRewards(context, provider, tc),
                   const SizedBox(height: 24),
-                  Text('🎨 Theme Gallery', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)).animate().fadeIn(delay: 500.ms, duration: 400.ms),
-                  const SizedBox(height: 12),
-                  _buildThemeGallery(context, provider, tc),
-                  const SizedBox(height: 24),
-                  Text('🎵 Ambient Sounds', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)).animate().fadeIn(delay: 600.ms, duration: 400.ms),
-                  const SizedBox(height: 12),
-                  _buildSoundShop(context, provider, tc),
-                  const SizedBox(height: 24),
-                  Text('⚙️ Settings', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)).animate().fadeIn(delay: 700.ms, duration: 400.ms),
+
+                  Row(
+                    children: [
+                      Icon(Icons.settings_rounded, color: tc.textPrimary, size: 24),
+                      const SizedBox(width: 8),
+                      Text('Settings', style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w600, color: tc.textPrimary)),
+                    ],
+                  ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
                   const SizedBox(height: 12),
                   _buildSettingsCard(context, provider, tc),
                 ],
@@ -97,7 +101,14 @@ class ProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(color: const Color(0xFF4FC3F7).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound)),
-            child: Text('🛡️ ${provider.stats.streakShields} Shield${provider.stats.streakShields > 1 ? 's' : ''} Active', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF4FC3F7))),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.shield_rounded, size: 12, color: Color(0xFF4FC3F7)),
+                const SizedBox(width: 4),
+                Text('${provider.stats.streakShields} Shield${provider.stats.streakShields > 1 ? 's' : ''} Active', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF4FC3F7))),
+              ],
+            ),
           ),
         ],
         const SizedBox(height: 16),
@@ -135,88 +146,81 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCoinShop(BuildContext context, AppProvider provider, ThemeColors tc) {
+  Widget _buildDailyRewards(BuildContext context, AppProvider provider, ThemeColors tc) {
+    final now = DateTime.now();
+    bool isNewDay = provider.stats.lastAdWatchDate == null ||
+        now.difference(provider.stats.lastAdWatchDate!).inDays >= 1 ||
+        now.day != provider.stats.lastAdWatchDate!.day;
+
+    final coinsWatched = isNewDay ? 0 : provider.stats.adCoinsWatchedToday;
+    final aiWatched = isNewDay ? 0 : provider.stats.adAiWatchedToday;
+
     return Column(children: [
-      _shopItem(icon: Icons.play_circle_filled_rounded, title: 'Watch to Earn', subtitle: 'Watch a short ad to earn 25 coins', buttonText: 'FREE', cost: 0, buttonColor: const Color(0xFFFFD700), tc: tc, onTap: () { HapticFeedback.mediumImpact(); provider.watchAdForCoins(); }),
+      _rewardItem(
+        icon: Icons.play_circle_filled_rounded,
+        title: 'Watch & Earn Coins',
+        subtitle: 'Earn 25 coins ($coinsWatched/5 today)',
+        buttonText: 'WATCH',
+        isMaxed: coinsWatched >= 5,
+        buttonColor: const Color(0xFFFFD700),
+        tc: tc,
+        onTap: () {
+          if (coinsWatched < 5) provider.watchAdForCoins();
+        },
+      ),
       const SizedBox(height: 10),
-      _shopItem(icon: Icons.auto_awesome_rounded, title: 'AI Refill (Ad)', subtitle: 'Watch a short ad for 3 AI Uses', buttonText: 'FREE', cost: 0, buttonColor: const Color(0xFFB388FF), tc: tc, onTap: () { HapticFeedback.mediumImpact(); provider.watchAdForAIUses(); }),
-      const SizedBox(height: 10),
-      _shopItem(icon: Icons.psychology_rounded, title: 'Ad-Free AI Refill', subtitle: 'Buy 5 AI Uses with your coins', buttonText: '100 🪙', cost: 100, buttonColor: const Color(0xFFB388FF), tc: tc, onTap: () { HapticFeedback.mediumImpact(); _confirmPurchase(context, 'Buy 5 AI Uses for 100 coins?', tc, () => provider.purchaseAIRefill()); }),
-      const SizedBox(height: 10),
-      _shopItem(icon: Icons.shield_rounded, title: 'Streak Shield', subtitle: 'Protect your streak if you miss a day', buttonText: '300 🪙', cost: 300, buttonColor: const Color(0xFF4FC3F7), tc: tc, onTap: () { HapticFeedback.mediumImpact(); _confirmPurchase(context, 'Buy a Streak Shield for 300 coins?', tc, () => provider.purchaseStreakShield()); }),
-    ]).animate().fadeIn(delay: 450.ms, duration: 400.ms);
+      _rewardItem(
+        icon: Icons.auto_awesome_rounded,
+        title: 'AI Uses Refill',
+        subtitle: 'Earn 3 AI Uses ($aiWatched/3 today)',
+        buttonText: 'WATCH',
+        isMaxed: aiWatched >= 3,
+        buttonColor: const Color(0xFFB388FF),
+        tc: tc,
+        onTap: () {
+          if (aiWatched < 3) provider.watchAdForAIUses();
+        },
+      ),
+    ]).animate().fadeIn(delay: 350.ms, duration: 400.ms);
   }
 
-  Widget _buildThemeGallery(BuildContext context, AppProvider provider, ThemeColors tc) {
-    final themes = AppTheme.themePresets;
-    return Column(children: themes.entries.map((e) {
-      final id = e.key;
-      final t = e.value;
-      final isUnlocked = provider.stats.isThemeUnlocked(id);
-      final isActive = provider.activeTheme == id;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: tc.card, borderRadius: BorderRadius.circular(AppTheme.radiusLg), border: Border.all(color: isActive ? t.accent.withValues(alpha: 0.5) : tc.divider.withValues(alpha: 0.4), width: isActive ? 2 : 1)),
-        child: Row(children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(borderRadius: BorderRadius.circular(AppTheme.radiusMd), color: t.background1, border: Border.all(color: t.accent.withValues(alpha: 0.4))),
-            child: Center(child: Text(t.icon, style: const TextStyle(fontSize: 20)))),
-          const SizedBox(width: 14),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(t.name, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: tc.textPrimary)),
-            const SizedBox(height: 2),
-            Row(children: [Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: t.accent)), const SizedBox(width: 4), Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: t.background1)), const SizedBox(width: 4), Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: t.card))]),
-          ])),
-          if (isActive) Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: t.accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound)), child: Text('Active', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: t.accent)))
-          else if (isUnlocked) GestureDetector(onTap: () => provider.switchTheme(id), child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: tc.divider, borderRadius: BorderRadius.circular(AppTheme.radiusRound)), child: Text('Apply', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: tc.textSecondary))))
-          else GestureDetector(onTap: () { HapticFeedback.mediumImpact(); _confirmPurchase(context, 'Unlock "${t.name}" theme for 1000 coins?', tc, () => provider.purchaseTheme(id)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFFFD700).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound), border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.3))), child: Text('1000 🪙', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFFFFD700))))),
-        ]),
-      );
-    }).toList()).animate().fadeIn(delay: 550.ms, duration: 400.ms);
-  }
-
-  Widget _buildSoundShop(BuildContext context, AppProvider provider, ThemeColors tc) {
-    final sounds = {'rain': ['🌧️', 'Gentle Rain'], 'forest_stream': ['🌊', 'Forest Stream'], 'cosmic': ['✨', 'Cosmic White Noise']};
-    return Column(children: sounds.entries.map((e) {
-      final id = e.key;
-      final icon = e.value[0];
-      final name = e.value[1];
-      final isUnlocked = provider.stats.isSoundUnlocked(id);
-      final isActive = provider.activeSound == id;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: tc.card, borderRadius: BorderRadius.circular(AppTheme.radiusLg), border: Border.all(color: isActive ? tc.accent.withValues(alpha: 0.4) : tc.divider.withValues(alpha: 0.4))),
-        child: Row(children: [
-          Text(icon, style: const TextStyle(fontSize: 28)),
-          const SizedBox(width: 14),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: tc.textPrimary)),
-            Text(isUnlocked ? 'Unlocked' : 'Play during focus sessions', style: GoogleFonts.inter(fontSize: 12, color: tc.textMuted)),
-          ])),
-          if (isActive) GestureDetector(onTap: () => provider.setActiveSound('none'), child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: tc.accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound)), child: Text('Playing', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: tc.accent))))
-          else if (isUnlocked) GestureDetector(onTap: () => provider.setActiveSound(id), child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: tc.divider, borderRadius: BorderRadius.circular(AppTheme.radiusRound)), child: Text('Play', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: tc.textSecondary))))
-          else GestureDetector(onTap: () { HapticFeedback.mediumImpact(); _confirmPurchase(context, 'Unlock "$name" for 500 coins?', tc, () => provider.purchaseSound(id)); }, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFFFD700).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound), border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.3))), child: Text('500 🪙', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFFFFD700))))),
-        ]),
-      );
-    }).toList()).animate().fadeIn(delay: 650.ms, duration: 400.ms);
-  }
-
-  Widget _shopItem({required IconData icon, required String title, required String subtitle, required String buttonText, required int cost, required Color buttonColor, required ThemeColors tc, required VoidCallback onTap}) {
+  Widget _rewardItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String buttonText,
+    required bool isMaxed,
+    required Color buttonColor,
+    required ThemeColors tc,
+    required VoidCallback onTap,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: tc.card, borderRadius: BorderRadius.circular(AppTheme.radiusLg), border: Border.all(color: tc.divider.withValues(alpha: 0.5))),
       child: Row(children: [
-        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: buttonColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusMd)), child: Icon(icon, color: buttonColor, size: 24)),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: isMaxed ? tc.divider : buttonColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(AppTheme.radiusMd)),
+          child: Icon(icon, color: isMaxed ? tc.textMuted : buttonColor, size: 24),
+        ),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title, style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: tc.textPrimary)), const SizedBox(height: 2),
-          Text(subtitle, style: GoogleFonts.inter(fontSize: 12, color: tc.textMuted)),
+          Text(isMaxed ? 'Daily limit reached' : subtitle, style: GoogleFonts.inter(fontSize: 12, color: tc.textMuted)),
         ])),
         const SizedBox(width: 8),
-        GestureDetector(onTap: onTap, child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(color: buttonColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppTheme.radiusRound), border: Border.all(color: buttonColor.withValues(alpha: 0.3))),
-          child: Text(buttonText, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: buttonColor)),
-        )),
+        GestureDetector(
+          onTap: isMaxed ? null : onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isMaxed ? tc.divider : buttonColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(AppTheme.radiusRound),
+              border: Border.all(color: isMaxed ? tc.divider : buttonColor.withValues(alpha: 0.3)),
+            ),
+            child: Text(isMaxed ? 'DONE' : buttonText, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: isMaxed ? tc.textMuted : buttonColor)),
+          ),
+        ),
       ]),
     );
   }
@@ -229,20 +233,7 @@ class ProfileScreen extends StatelessWidget {
         Divider(height: 1, color: tc.divider.withValues(alpha: 0.5)),
         ListTile(leading: Icon(Icons.info_outline_rounded, color: tc.textMuted, size: 22), title: Text('About Sprintura', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Version 1.1.0', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), onTap: () => _showAbout(context, tc)),
       ]),
-    ).animate().fadeIn(delay: 800.ms, duration: 400.ms);
-  }
-
-  void _confirmPurchase(BuildContext context, String message, ThemeColors tc, Future<bool> Function() action) {
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: tc.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
-      title: Text('Confirm Purchase', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tc.textPrimary)),
-      content: Text(message, style: GoogleFonts.inter(fontSize: 14, color: tc.textSecondary)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: GoogleFonts.inter(color: tc.textMuted))),
-        ElevatedButton(onPressed: () { Navigator.pop(ctx); action(); }, child: const Text('Buy')),
-      ],
-    ));
+    ).animate().fadeIn(delay: 500.ms, duration: 400.ms);
   }
 
   void _showAbout(BuildContext context, ThemeColors tc) {

@@ -59,7 +59,10 @@ class DatabaseHelper {
         streak_shields INTEGER NOT NULL DEFAULT 0,
         active_theme TEXT NOT NULL DEFAULT 'default',
         unlocked_themes TEXT NOT NULL DEFAULT 'default',
-        unlocked_sounds TEXT NOT NULL DEFAULT 'none'
+        unlocked_sounds TEXT NOT NULL DEFAULT 'none',
+        ad_coins_watched_today INTEGER NOT NULL DEFAULT 0,
+        ad_ai_watched_today INTEGER NOT NULL DEFAULT 0,
+        last_ad_watch_date TEXT
       )
     ''');
 
@@ -78,6 +81,12 @@ class DatabaseHelper {
           "ALTER TABLE user_stats ADD COLUMN unlocked_themes TEXT NOT NULL DEFAULT 'default'");
       await db.execute(
           "ALTER TABLE user_stats ADD COLUMN unlocked_sounds TEXT NOT NULL DEFAULT 'none'");
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN ad_coins_watched_today INTEGER NOT NULL DEFAULT 0");
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN ad_ai_watched_today INTEGER NOT NULL DEFAULT 0");
+      await db.execute(
+          "ALTER TABLE user_stats ADD COLUMN last_ad_watch_date TEXT");
     }
   }
 
@@ -249,10 +258,20 @@ class DatabaseHelper {
     return updatedStats;
   }
 
-  /// Add coins (e.g., from rewarded ads)
-  Future<UserStats> addCoins(int amount) async {
+  /// Add coins (e.g., from rewarded ads) and increment daily ad watch count
+  Future<UserStats> addCoinsFromAd(int amount) async {
     final stats = await getUserStats();
-    final updatedStats = stats.copyWith(focusCoins: stats.focusCoins + amount);
+    final now = DateTime.now();
+    bool isNewDay = stats.lastAdWatchDate == null ||
+        now.difference(stats.lastAdWatchDate!).inDays >= 1 ||
+        now.day != stats.lastAdWatchDate!.day;
+
+    final updatedStats = stats.copyWith(
+      focusCoins: stats.focusCoins + amount,
+      adCoinsWatchedToday: isNewDay ? 1 : stats.adCoinsWatchedToday + 1,
+      adAiWatchedToday: isNewDay ? 0 : stats.adAiWatchedToday,
+      lastAdWatchDate: now,
+    );
     await updateUserStats(updatedStats);
     return updatedStats;
   }
@@ -270,11 +289,19 @@ class DatabaseHelper {
     return updatedStats;
   }
 
-  /// Add AI uses (from rewarded ad)
-  Future<UserStats> addAIUses(int amount) async {
+  /// Add AI uses (from rewarded ad) and increment daily ad watch count
+  Future<UserStats> addAIUsesFromAd(int amount) async {
     final stats = await getUserStats();
+    final now = DateTime.now();
+    bool isNewDay = stats.lastAdWatchDate == null ||
+        now.difference(stats.lastAdWatchDate!).inDays >= 1 ||
+        now.day != stats.lastAdWatchDate!.day;
+
     final updatedStats = stats.copyWith(
       aiUsesRemaining: stats.aiUsesRemaining + amount,
+      adAiWatchedToday: isNewDay ? 1 : stats.adAiWatchedToday + 1,
+      adCoinsWatchedToday: isNewDay ? 0 : stats.adCoinsWatchedToday,
+      lastAdWatchDate: now,
     );
     await updateUserStats(updatedStats);
     return updatedStats;

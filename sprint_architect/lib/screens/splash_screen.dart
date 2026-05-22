@@ -137,22 +137,12 @@ class _SplashScreenState extends State<SplashScreen>
           child: child,
         );
       },
-      child: Container(
+      child: SizedBox(
         width: 140,
         height: 140,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: AppTheme.sageGreen.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(27),
-          child: Image.asset(
-            'assets/app_logo.png',
-            fit: BoxFit.cover,
-          ),
+        child: Image.asset(
+          'assets/app_logo.png',
+          fit: BoxFit.contain,
         ),
       ),
     )

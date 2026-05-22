@@ -5,30 +5,30 @@ import 'package:google_fonts/google_fonts.dart';
 /// Inspired by "Regain" — minimalist, serene, wellness-focused.
 /// Supports multiple unlockable themes.
 class AppTheme {
-  // ========== DEFAULT THEME COLORS (Deep Navy + Sage Green) ==========
-  static const Color deepNavy = Color(0xFF0A192F);
-  static const Color darkNavy = Color(0xFF0D1B2A);
-  static const Color midNavy = Color(0xFF1B2838);
-  static const Color lightNavy = Color(0xFF233554);
-  static const Color slateBlue = Color(0xFF2D4059);
+  // ========== DEFAULT THEME COLORS (Simple Blue) ==========
+  static const Color deepNavy = Color(0xFFF0F4F8); // Light grayish blue background
+  static const Color darkNavy = Color(0xFFE1E8ED);
+  static const Color midNavy = Color(0xFFD1DDE6);
+  static const Color lightNavy = Color(0xFFC0D1DD);
+  static const Color slateBlue = Color(0xFF1976D2); // Primary Blue
 
-  static const Color sageGreen = Color(0xFF64FFDA);
-  static const Color sageGreenDark = Color(0xFF4ECDC4);
-  static const Color sageGreenMuted = Color(0xFF3DAA9E);
-  static const Color sageGreenSubtle = Color(0x3364FFDA); // 20% opacity
+  static const Color sageGreen = Color(0xFF2196F3); // Main Blue Accent
+  static const Color sageGreenDark = Color(0xFF1976D2);
+  static const Color sageGreenMuted = Color(0xFF64B5F6);
+  static const Color sageGreenSubtle = Color(0x332196F3);
 
-  static const Color softWhite = Color(0xFFE6F1FF);
-  static const Color lightGray = Color(0xFFA8B2D1);
-  static const Color slateGray = Color(0xFF8892B0);
-  static const Color dimGray = Color(0xFF495670);
+  static const Color softWhite = Color(0xFFFFFFFF);
+  static const Color lightGray = Color(0xFF455A64); // Darker text
+  static const Color slateGray = Color(0xFF607D8B);
+  static const Color dimGray = Color(0xFF90A4AE);
 
-  static const Color errorRed = Color(0xFFFF6B6B);
-  static const Color warningAmber = Color(0xFFFFE66D);
-  static const Color successGreen = Color(0xFF4ECDC4);
+  static const Color errorRed = Color(0xFFE53935);
+  static const Color warningAmber = Color(0xFFFFB300);
+  static const Color successGreen = Color(0xFF43A047);
 
-  static const Color cardBackground = Color(0xFF112240);
-  static const Color surfaceColor = Color(0xFF0D1B2A);
-  static const Color dividerColor = Color(0xFF233554);
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color surfaceColor = Color(0xFFF5F7FA);
+  static const Color dividerColor = Color(0xFFCFD8DC);
 
   // ========== GRADIENTS ==========
   static const LinearGradient primaryGradient = LinearGradient(
@@ -89,17 +89,17 @@ class AppTheme {
   // ========== PREMIUM THEME DEFINITIONS ==========
   static const Map<String, ThemeColors> themePresets = {
     'default': ThemeColors(
-      name: 'Deep Navy',
-      background1: Color(0xFF0A192F),
-      background2: Color(0xFF0D1B2A),
-      card: Color(0xFF112240),
-      accent: Color(0xFF64FFDA),
-      accentDark: Color(0xFF4ECDC4),
-      divider: Color(0xFF233554),
-      textPrimary: Color(0xFFE6F1FF),
-      textSecondary: Color(0xFFA8B2D1),
-      textMuted: Color(0xFF8892B0),
-      textDim: Color(0xFF495670),
+      name: 'Simple Blue',
+      background1: Color(0xFFF0F4F8),
+      background2: Color(0xFFE1E8ED),
+      card: Color(0xFFFFFFFF),
+      accent: Color(0xFF2196F3),
+      accentDark: Color(0xFF1976D2),
+      divider: Color(0xFFCFD8DC),
+      textPrimary: Color(0xFF263238),
+      textSecondary: Color(0xFF455A64),
+      textMuted: Color(0xFF607D8B),
+      textDim: Color(0xFF90A4AE),
       icon: '🌊',
     ),
     'sakura': ThemeColors(
@@ -149,17 +149,18 @@ class AppTheme {
   static ThemeData _buildThemeData(ThemeColors tc) {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: tc.background1.computeLuminance() > 0.5 ? Brightness.light : Brightness.dark,
       scaffoldBackgroundColor: tc.background1,
-      colorScheme: ColorScheme.dark(
+      colorScheme: ColorScheme(
+        brightness: tc.background1.computeLuminance() > 0.5 ? Brightness.light : Brightness.dark,
         primary: tc.accent,
-        secondary: tc.accentDark,
-        surface: tc.card,
-        error: errorRed,
         onPrimary: tc.background1,
+        secondary: tc.accentDark,
         onSecondary: tc.background1,
-        onSurface: tc.textPrimary,
+        error: errorRed,
         onError: softWhite,
+        surface: tc.card,
+        onSurface: tc.textPrimary,
       ),
       textTheme: GoogleFonts.interTextTheme(
         TextTheme(

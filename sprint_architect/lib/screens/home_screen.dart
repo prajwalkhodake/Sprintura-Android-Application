@@ -6,6 +6,7 @@ import 'focus_hub_screen.dart';
 import 'tasks_screen.dart';
 import 'timer_screen.dart';
 import 'profile_screen.dart';
+import 'shop_screen.dart';
 
 /// Main home screen with bottom navigation.
 class HomeScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     FocusHubScreen(),
     TasksScreen(),
     TimerScreen(),
+    ShopScreen(),
     ProfileScreen(),
   ];
 
@@ -75,7 +77,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     _buildNavItem(0, Icons.home_rounded, 'Focus Hub', tc),
                     _buildNavItem(1, Icons.checklist_rounded, 'Tasks', tc),
                     _buildNavItem(2, Icons.timer_rounded, 'Timer', tc),
-                    _buildNavItem(3, Icons.person_rounded, 'Profile', tc),
+                    _buildNavItem(3, Icons.storefront_rounded, 'Shop', tc),
+                    _buildNavItem(4, Icons.person_rounded, 'Profile', tc),
                   ],
                 ),
               ),

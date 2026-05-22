@@ -261,9 +261,22 @@ class AppProvider extends ChangeNotifier {
 
   // ========== AD REWARDS ==========
   Future<void> watchAdForCoins() async {
+    final now = DateTime.now();
+    bool isNewDay = _stats.lastAdWatchDate == null ||
+        now.difference(_stats.lastAdWatchDate!).inDays >= 1 ||
+        now.day != _stats.lastAdWatchDate!.day;
+
+    int currentCount = isNewDay ? 0 : _stats.adCoinsWatchedToday;
+    if (currentCount >= 5) {
+      _errorMessage = 'Daily limit reached (5/5). Come back tomorrow!';
+      notifyListeners();
+      return;
+    }
+
     final rewarded = await _adService.showRewardedAd(
       onUserEarnedReward: (amount) async {
-        _stats = await _db.addCoins(25); // Grant 25 coins
+        _stats = await _db.addCoinsFromAd(25); // Grant 25 coins
+        _successMessage = '🪙 +25 Coins earned!';
         notifyListeners();
       },
     );
@@ -274,9 +287,22 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<void> watchAdForAIUses() async {
+    final now = DateTime.now();
+    bool isNewDay = _stats.lastAdWatchDate == null ||
+        now.difference(_stats.lastAdWatchDate!).inDays >= 1 ||
+        now.day != _stats.lastAdWatchDate!.day;
+
+    int currentCount = isNewDay ? 0 : _stats.adAiWatchedToday;
+    if (currentCount >= 3) {
+      _errorMessage = 'Daily AI limit reached (3/3). Come back tomorrow!';
+      notifyListeners();
+      return;
+    }
+
     final rewarded = await _adService.showRewardedAd(
       onUserEarnedReward: (amount) async {
-        _stats = await _db.addAIUses(3); // Grant 3 AI uses
+        _stats = await _db.addAIUsesFromAd(3); // Grant 3 AI uses
+        _successMessage = '🧠 +3 AI Uses earned!';
         notifyListeners();
       },
     );

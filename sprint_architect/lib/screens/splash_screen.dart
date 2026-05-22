@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 
-/// Animated splash screen with the Sprint Architect logo and premium loading animation.
+/// Animated splash screen with the Sprintura logo and premium loading animation.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -69,40 +69,25 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // ── Logo with animated glow ring ──
+              // ── Logo with animated glow ──
               _buildAnimatedLogo(),
 
               const SizedBox(height: 40),
 
-              // ── App name: "Sprint" ──
+              // ── App name: "SPRINTURA" ──
               Text(
-                'Sprint',
+                'SPRINTURA',
                 style: GoogleFonts.inter(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w300,
-                  color: AppTheme.softWhite,
-                  letterSpacing: 4,
-                ),
-              )
-                  .animate()
-                  .fadeIn(delay: 500.ms, duration: 600.ms)
-                  .slideY(
-                      begin: 0.3, end: 0, delay: 500.ms, duration: 600.ms),
-
-              // ── App name: "ARCHITECT" ──
-              Text(
-                'ARCHITECT',
-                style: GoogleFonts.inter(
-                  fontSize: 36,
+                  fontSize: 34,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.sageGreen,
-                  letterSpacing: 8,
+                  letterSpacing: 10,
                 ),
               )
                   .animate()
-                  .fadeIn(delay: 700.ms, duration: 600.ms)
+                  .fadeIn(delay: 600.ms, duration: 600.ms)
                   .slideY(
-                      begin: 0.3, end: 0, delay: 700.ms, duration: 600.ms),
+                      begin: 0.3, end: 0, delay: 600.ms, duration: 600.ms),
 
               const SizedBox(height: 16),
 
@@ -115,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen>
                   color: AppTheme.slateGray,
                   letterSpacing: 1,
                 ),
-              ).animate().fadeIn(delay: 1100.ms, duration: 600.ms),
+              ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
 
               const SizedBox(height: 48),
 
@@ -128,20 +113,19 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  /// Logo image wrapped in a pulsing glow ring.
+  /// Logo image displayed as a rounded rectangle that blends with the
+  /// deep navy background, wrapped in a pulsing sage-green glow.
   Widget _buildAnimatedLogo() {
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
-        final glowOpacity = 0.15 + (_pulseController.value * 0.35);
-        final glowSpread = 4.0 + (_pulseController.value * 12.0);
-        final glowBlur = 20.0 + (_pulseController.value * 20.0);
+        final glowOpacity = 0.12 + (_pulseController.value * 0.3);
+        final glowSpread = 2.0 + (_pulseController.value * 10.0);
+        final glowBlur = 18.0 + (_pulseController.value * 22.0);
 
         return Container(
-          width: 140,
-          height: 140,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
                 color: AppTheme.sageGreen.withValues(alpha: glowOpacity),
@@ -157,27 +141,17 @@ class _SplashScreenState extends State<SplashScreen>
         width: 140,
         height: 140,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.midNavy,
-              AppTheme.deepNavy,
-            ],
-          ),
+          borderRadius: BorderRadius.circular(28),
           border: Border.all(
-            color: AppTheme.sageGreen.withValues(alpha: 0.4),
-            width: 2,
+            color: AppTheme.sageGreen.withValues(alpha: 0.3),
+            width: 1.5,
           ),
         ),
-        child: ClipOval(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Image.asset(
-              'assets/app_logo.png',
-              fit: BoxFit.contain,
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(27),
+          child: Image.asset(
+            'assets/app_logo.png',
+            fit: BoxFit.cover,
           ),
         ),
       ),

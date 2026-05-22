@@ -227,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
       child: Column(children: [
         ListTile(leading: Icon(Icons.lock_rounded, color: tc.textMuted, size: 22), title: Text('Strict Mode', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Deduct coins when leaving app', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), trailing: Switch(value: provider.strictMode, onChanged: (v) => provider.setStrictMode(v))),
         Divider(height: 1, color: tc.divider.withValues(alpha: 0.5)),
-        ListTile(leading: Icon(Icons.info_outline_rounded, color: tc.textMuted, size: 22), title: Text('About Sprint Architect', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Version 1.1.0', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), onTap: () => _showAbout(context, tc)),
+        ListTile(leading: Icon(Icons.info_outline_rounded, color: tc.textMuted, size: 22), title: Text('About Sprintura', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Version 1.1.0', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), onTap: () => _showAbout(context, tc)),
       ]),
     ).animate().fadeIn(delay: 800.ms, duration: 400.ms);
   }
@@ -249,7 +249,7 @@ class ProfileScreen extends StatelessWidget {
     showDialog(context: context, builder: (ctx) => AlertDialog(
       backgroundColor: tc.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
-      title: Text('Sprint Architect', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tc.textPrimary)),
+      title: Text('Sprintura', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tc.textPrimary)),
       content: Text('Design your focus. Build your future.\n\nNow with Coin Shop, Premium Themes, and Ambient Sounds!\n\nVersion 1.1.0', style: GoogleFonts.inter(fontSize: 14, color: tc.textSecondary, height: 1.6)),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Close', style: GoogleFonts.inter(color: tc.accent, fontWeight: FontWeight.w600)))],
     ));

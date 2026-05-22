@@ -26,11 +26,11 @@ void main() async {
   // Initialize AdMob
   await MobileAds.instance.initialize();
 
-  runApp(const SprintArchitectApp());
+  runApp(const SprinturaApp());
 }
 
-class SprintArchitectApp extends StatelessWidget {
-  const SprintArchitectApp({super.key});
+class SprinturaApp extends StatelessWidget {
+  const SprinturaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class SprintArchitectApp extends StatelessWidget {
       child: Consumer<AppProvider>(
         builder: (context, provider, _) {
           return MaterialApp(
-            title: 'Sprint Architect',
+            title: 'Sprintura',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.buildTheme(provider.activeTheme),
             home: const SplashScreen(),

@@ -137,4 +137,33 @@ class UserStats {
 
   /// Get list of unlocked sound IDs
   List<String> get unlockedSoundList => unlockedSounds.split(',');
+
+  // ========== DAILY AD TRACKING HELPERS ==========
+
+  /// Whether today is a new day compared to lastAdWatchDate
+  bool get isNewDay {
+    if (lastAdWatchDate == null) return true;
+    final now = DateTime.now();
+    return now.year != lastAdWatchDate!.year ||
+        now.month != lastAdWatchDate!.month ||
+        now.day != lastAdWatchDate!.day;
+  }
+
+  /// Effective coin ads watched today (resets on new day)
+  int get effectiveCoinsWatched => isNewDay ? 0 : adCoinsWatchedToday;
+
+  /// Effective AI ads watched today (resets on new day)
+  int get effectiveAiWatched => isNewDay ? 0 : adAiWatchedToday;
+
+  /// Whether the user can still watch a coin reward ad today (limit: 5)
+  bool get canWatchCoinAd => effectiveCoinsWatched < 5;
+
+  /// Whether the user can still watch an AI reward ad today (limit: 3)
+  bool get canWatchAiAd => effectiveAiWatched < 3;
+
+  /// Remaining coin ad watches today
+  int get remainingCoinAds => (5 - effectiveCoinsWatched).clamp(0, 5);
+
+  /// Remaining AI ad watches today
+  int get remainingAiAds => (3 - effectiveAiWatched).clamp(0, 3);
 }

@@ -147,13 +147,10 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildDailyRewards(BuildContext context, AppProvider provider, ThemeColors tc) {
-    final now = DateTime.now();
-    bool isNewDay = provider.stats.lastAdWatchDate == null ||
-        now.difference(provider.stats.lastAdWatchDate!).inDays >= 1 ||
-        now.day != provider.stats.lastAdWatchDate!.day;
-
-    final coinsWatched = isNewDay ? 0 : provider.stats.adCoinsWatchedToday;
-    final aiWatched = isNewDay ? 0 : provider.stats.adAiWatchedToday;
+    final coinsWatched = provider.stats.effectiveCoinsWatched;
+    final aiWatched = provider.stats.effectiveAiWatched;
+    final canWatchCoins = provider.stats.canWatchCoinAd;
+    final canWatchAi = provider.stats.canWatchAiAd;
 
     return Column(children: [
       _rewardItem(
@@ -161,11 +158,11 @@ class ProfileScreen extends StatelessWidget {
         title: 'Watch & Earn Coins',
         subtitle: 'Earn 25 coins ($coinsWatched/5 today)',
         buttonText: 'WATCH',
-        isMaxed: coinsWatched >= 5,
+        isMaxed: !canWatchCoins,
         buttonColor: const Color(0xFFFFD700),
         tc: tc,
         onTap: () {
-          if (coinsWatched < 5) provider.watchAdForCoins();
+          if (canWatchCoins) provider.watchAdForCoins();
         },
       ),
       const SizedBox(height: 10),
@@ -174,11 +171,11 @@ class ProfileScreen extends StatelessWidget {
         title: 'AI Uses Refill',
         subtitle: 'Earn 3 AI Uses ($aiWatched/3 today)',
         buttonText: 'WATCH',
-        isMaxed: aiWatched >= 3,
+        isMaxed: !canWatchAi,
         buttonColor: const Color(0xFFB388FF),
         tc: tc,
         onTap: () {
-          if (aiWatched < 3) provider.watchAdForAIUses();
+          if (canWatchAi) provider.watchAdForAIUses();
         },
       ),
     ]).animate().fadeIn(delay: 350.ms, duration: 400.ms);

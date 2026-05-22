@@ -24,7 +24,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -70,9 +70,10 @@ class DatabaseHelper {
     await db.insert('user_stats', UserStats().toMap());
   }
 
-  /// Migrate from v1 to v2: add coin shop columns
+  /// Migrate database schema across versions.
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
+      // v1 → v2: add coin shop columns
       await db.execute(
           'ALTER TABLE user_stats ADD COLUMN streak_shields INTEGER NOT NULL DEFAULT 0');
       await db.execute(
@@ -81,12 +82,28 @@ class DatabaseHelper {
           "ALTER TABLE user_stats ADD COLUMN unlocked_themes TEXT NOT NULL DEFAULT 'default'");
       await db.execute(
           "ALTER TABLE user_stats ADD COLUMN unlocked_sounds TEXT NOT NULL DEFAULT 'none'");
-      await db.execute(
+    }
+
+    if (oldVersion < 3) {
+      // v2 → v3: add daily ad tracking columns.
+      // Wrapped in try/catch so it won't crash if columns already exist
+      // (e.g., fresh installs that were created at v2 with the new schema).
+      await _safeAddColumn(db,
           "ALTER TABLE user_stats ADD COLUMN ad_coins_watched_today INTEGER NOT NULL DEFAULT 0");
-      await db.execute(
+      await _safeAddColumn(db,
           "ALTER TABLE user_stats ADD COLUMN ad_ai_watched_today INTEGER NOT NULL DEFAULT 0");
-      await db.execute(
+      await _safeAddColumn(db,
           "ALTER TABLE user_stats ADD COLUMN last_ad_watch_date TEXT");
+    }
+  }
+
+  /// Safely execute an ALTER TABLE ADD COLUMN statement.
+  /// Silently ignores "duplicate column name" errors.
+  Future<void> _safeAddColumn(Database db, String sql) async {
+    try {
+      await db.execute(sql);
+    } catch (e) {
+      // Column already exists — safe to ignore
     }
   }
 

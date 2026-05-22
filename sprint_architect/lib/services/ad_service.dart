@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:io';
 
@@ -77,20 +78,6 @@ class AdService {
         onAdLoaded: (ad) {
           _rewardedAd = ad;
           _isRewardedAdReady = true;
-
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              ad.dispose();
-              _rewardedAd = null;
-              _isRewardedAdReady = false;
-              loadRewardedAd(); // Pre-load next one
-            },
-            onAdFailedToShowFullScreenContent: (ad, error) {
-              ad.dispose();
-              _rewardedAd = null;
-              _isRewardedAdReady = false;
-            },
-          );
         },
         onAdFailedToLoad: (error) {
           _isRewardedAdReady = false;
@@ -99,21 +86,46 @@ class AdService {
     );
   }
 
-  /// Show rewarded ad and return reward via callback
-  Future<bool> showRewardedAd({
-    required Function(int amount) onUserEarnedReward,
-  }) async {
-    if (_isRewardedAdReady && _rewardedAd != null) {
-      bool rewarded = false;
-      await _rewardedAd!.show(
-        onUserEarnedReward: (ad, reward) {
-          onUserEarnedReward(reward.amount.toInt());
-          rewarded = true;
-        },
-      );
-      return rewarded;
+  /// Show rewarded ad. Returns the reward amount if the user earned a reward,
+  /// or 0 if the ad was dismissed without reward / not available.
+  /// Uses a Completer to properly await through the full ad lifecycle.
+  Future<int> showRewardedAd() async {
+    if (!_isRewardedAdReady || _rewardedAd == null) {
+      return 0;
     }
-    return false;
+
+    final completer = Completer<int>();
+    int earnedReward = 0;
+
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _rewardedAd = null;
+        _isRewardedAdReady = false;
+        // Pre-load next rewarded ad immediately
+        loadRewardedAd();
+        // Complete with whatever reward was earned (0 if user skipped)
+        if (!completer.isCompleted) {
+          completer.complete(earnedReward);
+        }
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        _rewardedAd = null;
+        _isRewardedAdReady = false;
+        if (!completer.isCompleted) {
+          completer.complete(0);
+        }
+      },
+    );
+
+    await _rewardedAd!.show(
+      onUserEarnedReward: (ad, reward) {
+        earnedReward = reward.amount.toInt();
+      },
+    );
+
+    return completer.future;
   }
 
   /// Dispose all ads

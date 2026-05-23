@@ -5,8 +5,7 @@ import 'package:uuid/uuid.dart';
 
 /// Service for communicating with the Flask AI backend.
 class AIService {
-  // Update this URL when deploying to Vercel
-  static const String _baseUrl = 'https://sprint-architect-api.vercel.app';
+  static const String _baseUrl = 'https://sprintura-android-application-3q7i.vercel.app';
   static const String _localUrl = 'http://10.0.2.2:5000'; // Android emulator localhost
   
   final bool useLocal;

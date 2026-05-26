@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_provider.dart';
+import '../widgets/in_app_notification_widget.dart';
 
 /// Focus Hub Screen — the main brain dump entry point.
 class FocusHubScreen extends StatefulWidget {
@@ -71,7 +72,54 @@ class _FocusHubScreenState extends State<FocusHubScreen>
                         _buildGreetingHeader(provider, tc),
                         const SizedBox(height: 24),
                         _buildStatsRow(provider, tc),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Remote Banners ──
+                // Update available banner
+                if (provider.hasNewVersion)
+                  SliverToBoxAdapter(
+                    child: UpdateAvailableBanner(
+                      latestVersion: provider.remoteConfig.latestVersion,
+                      updateUrl: provider.remoteConfig.updateUrl,
+                      tc: tc,
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0),
+                  ),
+
+                // MOTD banner
+                if (provider.motd.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: NotificationBanner(
+                      title: '',
+                      message: provider.motd,
+                      tc: tc,
+                      icon: Icons.lightbulb_outline_rounded,
+                      accentColor: AppTheme.warningAmber,
+                    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+                  ),
+
+                // Remote notification banners
+                ...provider.activeBanners.map((banner) {
+                  return SliverToBoxAdapter(
+                    child: NotificationBanner(
+                      title: banner.title,
+                      message: banner.message,
+                      tc: tc,
+                      onDismiss: () => provider.dismissNotification(banner.id),
+                    ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+                  );
+                }),
+
+                // ── Brain Dump Card ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         _buildBrainDumpCard(provider, tc),
                         const SizedBox(height: 24),
                       ],

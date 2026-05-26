@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 
 /// Service for communicating with the Flask AI backend.
 class AIService {
-  static const String _baseUrl = 'https://backend-weld-delta-77.vercel.app';
+  static const String _baseUrl = 'https://backend-two-orpin-81.vercel.app';
   static const String _localUrl = 'http://10.0.2.2:5000'; // Android emulator localhost
   
   final bool useLocal;

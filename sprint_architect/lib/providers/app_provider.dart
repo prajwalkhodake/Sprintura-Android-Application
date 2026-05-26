@@ -4,14 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/database_helper.dart';
 import '../models/task_model.dart';
 import '../models/user_stats_model.dart';
+import '../models/remote_config_model.dart';
 import '../services/ai_service.dart';
 import '../services/ad_service.dart';
+import '../services/remote_config_service.dart';
 
 /// Main application state provider managing tasks, stats, timer, ads, and shop.
 class AppProvider extends ChangeNotifier {
   final DatabaseHelper _db = DatabaseHelper();
   final AIService _aiService = AIService();
   final AdService _adService = AdService();
+  final RemoteConfigService _remoteConfigService = RemoteConfigService();
 
   // ========== STATE ==========
   List<Task> _tasks = [];
@@ -55,8 +58,18 @@ class AppProvider extends ChangeNotifier {
   bool get strictMode => _strictMode;
   bool get hasLeftApp => _hasLeftApp;
   AdService get adService => _adService;
+  RemoteConfigService get remoteConfigService => _remoteConfigService;
   String get activeSound => _activeSound;
   String get activeTheme => _stats.activeTheme;
+
+  // Remote config getters
+  RemoteConfig get remoteConfig => _remoteConfigService.config;
+  bool get needsForceUpdate => _remoteConfigService.needsForceUpdate;
+  bool get hasNewVersion => _remoteConfigService.hasNewVersion;
+  List<AppNotification> get activePopups => _remoteConfigService.activePopups;
+  List<AppNotification> get activeBanners => _remoteConfigService.activeBanners;
+  String get motd => _remoteConfigService.motd;
+  bool get isRemoteConfigLoaded => _remoteConfigService.isLoaded;
 
   double get timerProgress {
     if (_timerDuration == 0) return 0;
@@ -86,6 +99,9 @@ class AppProvider extends ChangeNotifier {
       // Pre-load ads
       _adService.loadInterstitialAd();
       _adService.loadRewardedAd();
+
+      // Fetch remote config (non-blocking, falls back to cache)
+      await _remoteConfigService.fetchConfig();
     } catch (e) {
       _errorMessage = 'Failed to initialize: $e';
     }
@@ -373,6 +389,19 @@ class AppProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('active_sound', soundId);
     notifyListeners();
+  }
+
+  // ========== REMOTE CONFIG ==========
+
+  /// Dismiss a remote notification so it won't show again.
+  Future<void> dismissNotification(String notificationId) async {
+    await _remoteConfigService.dismissNotification(notificationId);
+    notifyListeners();
+  }
+
+  /// Check if a feature is enabled via remote feature flags.
+  bool isFeatureEnabled(String flagName) {
+    return _remoteConfigService.isFeatureEnabled(flagName);
   }
 
   void clearError() {

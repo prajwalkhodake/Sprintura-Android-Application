@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_provider.dart';
+import '../widgets/in_app_notification_widget.dart';
 import 'focus_hub_screen.dart';
 import 'tasks_screen.dart';
 import 'timer_screen.dart';
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  bool _hasCheckedRemoteConfig = false;
 
   final List<Widget> _screens = const [
     FocusHubScreen(),
@@ -31,6 +33,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Check remote config after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkRemoteNotifications();
+    });
   }
 
   @override
@@ -46,6 +53,64 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // App went to background
       context.read<AppProvider>().onAppBackgrounded();
     }
+  }
+
+  /// Check for force-update dialogs and popup announcements from remote config.
+  Future<void> _checkRemoteNotifications() async {
+    if (_hasCheckedRemoteConfig || !mounted) return;
+    _hasCheckedRemoteConfig = true;
+
+    final provider = context.read<AppProvider>();
+    if (!provider.isRemoteConfigLoaded) return;
+
+    final tc = AppTheme.getThemeColors(provider.activeTheme);
+
+    // 1. Force update check (highest priority, non-dismissible)
+    if (provider.needsForceUpdate) {
+      if (mounted) {
+        await ForceUpdateDialog.show(
+          context,
+          updateUrl: provider.remoteConfig.updateUrl,
+          latestVersion: provider.remoteConfig.latestVersion,
+          tc: tc,
+        );
+      }
+      return; // Don't show other notifications if force update is needed
+    }
+
+    // 2. Show popup-type announcements (one at a time)
+    final popups = provider.activePopups;
+    for (final popup in popups) {
+      if (!mounted) return;
+      await AnnouncementPopup.show(
+        context,
+        notification: popup,
+        tc: tc,
+        onCtaPressed: () => _handleCtaAction(popup, provider),
+        onDismissed: () => provider.dismissNotification(popup.id),
+      );
+      // Dismiss after showing regardless (so it only shows once)
+      await provider.dismissNotification(popup.id);
+    }
+  }
+
+  /// Handle the CTA action from an announcement popup.
+  void _handleCtaAction(dynamic notification, AppProvider provider) {
+    switch (notification.ctaAction) {
+      case 'shop':
+        setState(() => _currentIndex = 3); // Switch to Shop tab
+        break;
+      case 'url':
+        // URL launching is handled by the widget itself
+        break;
+      case 'update':
+        // Update is handled by the widget
+        break;
+      case 'dismiss':
+      default:
+        break;
+    }
+    provider.dismissNotification(notification.id);
   }
 
   @override

@@ -146,6 +146,88 @@ def health():
     })
 
 
+@app.route('/api/config')
+def get_config():
+    """
+    Remote configuration endpoint.
+
+    Edit the values below to push announcements, version updates,
+    feature flags, or motivational messages to ALL users instantly —
+    no Play Store update required. Just edit, commit, and redeploy.
+    """
+    from datetime import date
+
+    config = {
+        # ── Version Control ──────────────────────────────────────────
+        # latest_version: shows a gentle "Update available" popup
+        # min_version: forces an update dialog (non-dismissible) for
+        #              anyone running a version below this
+        "latest_version": "1.0.0",
+        "min_version": "1.0.0",
+        "update_url": "https://play.google.com/store/apps/details?id=com.sprintura.app",
+
+        # ── In-App Notifications ─────────────────────────────────────
+        # Each notification is shown ONCE per user (tracked by id).
+        # Types: "popup" (modal dialog), "banner" (top of dashboard),
+        #        "force_update" (non-dismissible fullscreen)
+        # Priority: "low", "normal", "high", "critical"
+        # cta_action: "shop" (opens shop tab), "url" (opens cta_url),
+        #             "dismiss" (just closes), "update" (opens store)
+        "notifications": [
+            {
+                "id": "welcome_v1",
+                "type": "banner",
+                "title": "Welcome to Sprintura!",
+                "message": "Design your focus. Build your future. Start by deconstructing your first goal!",
+                "cta_text": "",
+                "cta_action": "dismiss",
+                "cta_url": "",
+                "priority": "normal",
+                "start_date": "2026-01-01",
+                "end_date": "2027-12-31",
+                "dismissible": True
+            },
+            # ── Example: Uncomment below to push a sale popup ────────
+            # {
+            #     "id": "summer_sale_2026",
+            #     "type": "popup",
+            #     "title": "Summer Sale!",
+            #     "message": "All premium themes are 50% off this week only!",
+            #     "cta_text": "Visit Shop",
+            #     "cta_action": "shop",
+            #     "cta_url": "",
+            #     "priority": "high",
+            #     "start_date": "2026-06-01",
+            #     "end_date": "2026-06-07",
+            #     "dismissible": True
+            # },
+        ],
+
+        # ── Feature Flags ────────────────────────────────────────────
+        # Toggle features on/off remotely without app updates.
+        "feature_flags": {
+            "maintenance_mode": False,
+            "ai_enabled": True,
+            "ads_enabled": True,
+            "shop_enabled": True,
+        },
+
+        # ── Message of the Day ───────────────────────────────────────
+        # Shown as a small banner on the Focus Hub dashboard.
+        "motd": "Small steps, big results. Let's focus! 💪",
+    }
+
+    # Filter notifications to only include those within their active date range
+    today = date.today().isoformat()
+    active_notifications = [
+        n for n in config["notifications"]
+        if n.get("start_date", "2000-01-01") <= today <= n.get("end_date", "2099-12-31")
+    ]
+    config["notifications"] = active_notifications
+
+    return jsonify(config)
+
+
 @app.route('/api/deconstruct', methods=['POST'])
 def deconstruct():
     """

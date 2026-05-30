@@ -9,17 +9,17 @@ class AdService {
   bool _isInterstitialAdReady = false;
   bool _isRewardedAdReady = false;
 
-  // Test Ad Unit IDs (ALWAYS use these for development)
+  // Production Ad Unit IDs
   static String get interstitialAdUnitId {
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/1033173712';
+      return 'ca-app-pub-4885799405422419/5326575375';
     }
     return 'ca-app-pub-3940256099942544/4411468910'; // iOS test
   }
 
   static String get rewardedAdUnitId {
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/5224354917';
+      return 'ca-app-pub-4885799405422419/9185929332';
     }
     return 'ca-app-pub-3940256099942544/1712485313'; // iOS test
   }

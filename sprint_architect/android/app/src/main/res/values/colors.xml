@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launch_background">#0A192F</color>
-	<color name="ic_launcher_background">#020b43</color>
+    <!-- Light mode launch background — matches Simple Blue theme -->
+    <color name="launch_background">#F0F4F8</color>
+    <color name="ic_launcher_background">#020b43</color>
 </resources>

@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  // Privacy policy URL — update this with your actual privacy policy
+  static const String _privacyPolicyUrl =
+      'https://sites.google.com/view/sprintura-privacy-policy';
 
   @override
   Widget build(BuildContext context) {
@@ -226,20 +232,78 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(color: tc.card, borderRadius: BorderRadius.circular(AppTheme.radiusLg), border: Border.all(color: tc.divider.withValues(alpha: 0.5))),
       child: Column(children: [
-        ListTile(leading: Icon(Icons.lock_rounded, color: tc.textMuted, size: 22), title: Text('Strict Mode', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Deduct coins when leaving app', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), trailing: Switch(value: provider.strictMode, onChanged: (v) => provider.setStrictMode(v))),
+        ListTile(
+          leading: Icon(Icons.lock_rounded, color: tc.textMuted, size: 22),
+          title: Text('Strict Mode', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)),
+          subtitle: Text('Deduct coins when leaving app', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)),
+          trailing: Switch(value: provider.strictMode, onChanged: (v) => provider.setStrictMode(v)),
+        ),
         Divider(height: 1, color: tc.divider.withValues(alpha: 0.5)),
-        ListTile(leading: Icon(Icons.info_outline_rounded, color: tc.textMuted, size: 22), title: Text('About Sprintura', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)), subtitle: Text('Version 1.1.0', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)), onTap: () => _showAbout(context, tc)),
+        ListTile(
+          leading: Icon(Icons.privacy_tip_outlined, color: tc.textMuted, size: 22),
+          title: Text('Privacy Policy', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)),
+          subtitle: Text('View our privacy policy', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim)),
+          trailing: Icon(Icons.open_in_new_rounded, size: 18, color: tc.textDim),
+          onTap: () => _openPrivacyPolicy(),
+        ),
+        Divider(height: 1, color: tc.divider.withValues(alpha: 0.5)),
+        ListTile(
+          leading: Icon(Icons.info_outline_rounded, color: tc.textMuted, size: 22),
+          title: Text('About Sprintura', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500, color: tc.textPrimary)),
+          subtitle: FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final version = snapshot.data?.version ?? '1.0.0';
+              final buildNumber = snapshot.data?.buildNumber ?? '1';
+              return Text('Version $version ($buildNumber)', style: GoogleFonts.inter(fontSize: 12, color: tc.textDim));
+            },
+          ),
+          onTap: () => _showAbout(context, tc),
+        ),
       ]),
     ).animate().fadeIn(delay: 500.ms, duration: 400.ms);
   }
 
+  Future<void> _openPrivacyPolicy() async {
+    final uri = Uri.parse(_privacyPolicyUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   void _showAbout(BuildContext context, ThemeColors tc) {
-    showDialog(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: tc.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
-      title: Text('Sprintura', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tc.textPrimary)),
-      content: Text('Design your focus. Build your future.\n\nNow with Coin Shop, Premium Themes, and Ambient Sounds!\n\nVersion 1.1.0', style: GoogleFonts.inter(fontSize: 14, color: tc.textSecondary, height: 1.6)),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Close', style: GoogleFonts.inter(color: tc.accent, fontWeight: FontWeight.w600)))],
+    showDialog(context: context, builder: (ctx) => FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        final version = snapshot.data?.version ?? '1.0.0';
+        final buildNumber = snapshot.data?.buildNumber ?? '1';
+        return AlertDialog(
+          backgroundColor: tc.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
+          title: Text('Sprintura', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: tc.textPrimary)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Design your focus. Build your future.\n\n'
+                'AI-Powered Productivity with Coin Shop, Premium Themes, and Ambient Sounds.\n\n'
+                'Version $version (Build $buildNumber)',
+                style: GoogleFonts.inter(fontSize: 14, color: tc.textSecondary, height: 1.6),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _openPrivacyPolicy(),
+                child: Text(
+                  'Privacy Policy',
+                  style: GoogleFonts.inter(fontSize: 13, color: tc.accent, fontWeight: FontWeight.w500, decoration: TextDecoration.underline),
+                ),
+              ),
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Close', style: GoogleFonts.inter(color: tc.accent, fontWeight: FontWeight.w600)))],
+        );
+      },
     ));
   }
 }

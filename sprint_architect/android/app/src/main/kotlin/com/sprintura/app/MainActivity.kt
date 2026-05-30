@@ -1,4 +1,4 @@
-package com.sprintarchitect.sprint_architect
+package com.sprintura.app
 
 import io.flutter.embedding.android.FlutterActivity
 

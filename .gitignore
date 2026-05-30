@@ -1,4 +1,5 @@
 *.apk
+*.aab
 .DS_Store
 sprint_architect/build/
 sprint_architect/.dart_tool/
@@ -10,3 +11,7 @@ backend/.env
 .idea/
 *.iml
 
+# Release signing — NEVER commit these
+**/key.properties
+*.jks
+*.keystore
